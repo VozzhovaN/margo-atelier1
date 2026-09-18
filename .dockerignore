@@ -1,0 +1,10 @@
+node_modules
+dist
+.git
+.gitignore
+.env
+.env.local
+report
+data/consultations.json
+*.log
+.DS_Store

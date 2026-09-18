@@ -1,0 +1,8 @@
+{
+  "name": "MARGO ATELIER",
+  "description": "Premium mobile-first Telegram Mini App consultation prep for MARGO Atelier contemporary couture.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

@@ -1,0 +1,108 @@
+export type OccasionType = 'bridal' | 'evening' | 'special_occasion' | 'custom_dress';
+
+export interface OccasionOption {
+  id: OccasionType;
+  title: string;
+  subtitle: string;
+  description: string;
+  image: string;
+  tag: string;
+}
+
+export interface SilhouetteOption {
+  id: string;
+  name: string;
+  subtitle: string;
+  description: string;
+  image: string;
+  characteristics: string[];
+}
+
+export interface StyleOption {
+  id: string;
+  name: string;
+  subtitle: string;
+  description: string;
+  image: string;
+  moodWords: string[];
+}
+
+export interface ColorOption {
+  id: string;
+  name: string;
+  hex: string;
+  secondaryHex?: string;
+  description: string;
+  paletteMood: string;
+}
+
+export interface BudgetOption {
+  id: string;
+  range: string;
+  tier: string;
+  description: string;
+  includes: string[];
+}
+
+export interface PriorityOption {
+  id: string;
+  label: string;
+  description: string;
+}
+
+export interface ClientMeasurements {
+  height: string;
+  clothingSize: string;
+  fitPreference: string;
+  notes: string;
+}
+
+export interface ClientContact {
+  fullName: string;
+  telegramHandle: string;
+  whatsappPhone: string;
+  consultationType: 'atelier' | 'virtual';
+  atelierLocation: string;
+  preferredLanguage: string;
+}
+
+export interface AIStyleDirection {
+  headline: string;
+  concept: string;
+  recommendedFabrics: string[];
+  architecturalDetails: string[];
+  consultationFocus: string[];
+}
+
+export interface ConsultationDossier {
+  id?: string;
+  createdAt?: string;
+  occasion: OccasionType | '';
+  date: string;
+  timeline: string;
+  budget: string;
+  silhouette: string;
+  style: string;
+  colors: string[];
+  measurements: ClientMeasurements;
+  references: string[];
+  referenceNotes: string;
+  priorities: string[];
+  contact: ClientContact;
+  aiStyleDirection?: AIStyleDirection;
+  status?: 'new' | 'contacted' | 'scheduled' | 'fitting' | 'completed';
+}
+
+export type StepKey =
+  | 'welcome'
+  | 'occasion'
+  | 'date'
+  | 'budget'
+  | 'silhouette'
+  | 'style'
+  | 'colours'
+  | 'measurements'
+  | 'references'
+  | 'priorities'
+  | 'contacts'
+  | 'summary';
