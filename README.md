@@ -2,9 +2,26 @@
 
 Мобильное консультационное досье ателье: клиентский опросник, AI Style Direction и Telegram-уведомления.
 
-Приложение — это React + Express, а не одиночный HTML. Файл `index.html` сам по себе в браузере не откроется: его поднимает сервер из `server.ts` на порту **3000**.
+Приложение — React + Vite. Локально API поднимает `server.ts` (`npm run dev`). На Vercel фронтенд отдаётся из `dist/`, API — serverless-функции в `/api`.
+
+## Vercel
+
+1. Импортируйте репозиторий в [Vercel](https://vercel.com).
+2. Framework Preset: **Vite**. Output Directory: **dist**. Build Command: **vite build**.
+3. Environment Variables (все необязательные):
+   - `GEMINI_API_KEY` — живой Style Direction; если пусто, используется встроенный движок
+   - `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` — уведомления о заявках
+   - `APP_URL` — публичный HTTPS-адрес
+4. Deploy. Откройте выданный URL: главная `/` и `/api/health` должны отвечать 200.
+
+### Ограничение хранилища на Vercel
+
+`data/consultations.json` нельзя надёжно писать в serverless-среде. На Vercel заявки держатся в памяти инстанса (и `/tmp` best-effort): Dashboard и отправка досье работают в рамках живого инстанса, но данные не переживают cold start и не общие между инстансами. Локально файл по-прежнему сохраняется. Архитектура в `lib/consultations.ts` готова к последующему переносу на Supabase; в этой версии Supabase не подключён.
+
+Лимит тела запроса Vercel Hobby — около 4.5 MB (загрузка нескольких крупных референсов на проде может не пройти).
 
 ## 1. Что должно быть установлено
+
 
 - **Node.js 20 или новее**
 - Проверка в PowerShell:
@@ -106,7 +123,8 @@ NODE_ENV=production npm start
 - `TELEGRAM_BOT_TOKEN` и `TELEGRAM_CHAT_ID` — чтобы досье приходили в Telegram
 - `APP_URL` — публичный HTTPS-адрес, например `https://atelier.example.com`
 
-Фронтенд отдаётся из `dist/public`, API — с того же порта (`/api/...`).
+Фронтенд отдаётся из `dist/`, API — `/api/...`.
+
 
 Пример Nginx:
 
@@ -124,7 +142,8 @@ server {
 }
 ```
 
-Заявки сохраняются в `data/consultations.json`. На хостинге с эфемерным диском задайте постоянный путь через `DATA_DIR`.
+Заявки локально сохраняются в `data/consultations.json`. На Vercel см. ограничение хранилища выше.
+
 
 ### Docker
 

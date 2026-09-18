@@ -11,6 +11,8 @@ ENV NODE_ENV=production
 COPY package.json ./
 RUN npm install --omit=dev
 COPY --from=build /app/dist ./dist
+COPY --from=build /app/server.ts ./server.ts
+COPY --from=build /app/lib ./lib
 RUN mkdir -p /app/data
 EXPOSE 3000
-CMD ["node", "dist/server.cjs"]
+CMD ["npx", "tsx", "server.ts"]
