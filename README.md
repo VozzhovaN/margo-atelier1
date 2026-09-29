@@ -2,16 +2,20 @@
 
 Мобильное консультационное досье ателье: клиентский опросник, AI Style Direction и Telegram-уведомления.
 
+**Рабочая ссылка:** [https://margo-atelier1.vercel.app/](https://margo-atelier1.vercel.app/)
+
 Приложение — React + Vite. Локально API поднимает `server.ts` (`npm run dev`). На Vercel фронтенд отдаётся из `dist/`, API — serverless-функции в `/api`.
 
 ## Vercel
+
+Живой деплой: [https://margo-atelier1.vercel.app/](https://margo-atelier1.vercel.app/)
 
 1. Импортируйте репозиторий в [Vercel](https://vercel.com).
 2. Framework Preset: **Vite**. Output Directory: **dist**. Build Command: **vite build**.
 3. Environment Variables (все необязательные):
    - `GEMINI_API_KEY` — живой Style Direction; если пусто, используется встроенный движок
    - `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` — уведомления о заявках
-   - `APP_URL` — публичный HTTPS-адрес
+   - `APP_URL` — публичный HTTPS-адрес (`https://margo-atelier1.vercel.app`)
 4. Deploy. Откройте выданный URL: главная `/` и `/api/health` должны отвечать 200.
 
 ### Ограничение хранилища на Vercel
