@@ -122,4 +122,3 @@ export const StepOccasion: React.FC<StepOccasionProps> = ({ selected, onSelect, 
     </motion.div>
   );
 };
-

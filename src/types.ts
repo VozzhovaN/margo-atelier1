@@ -14,7 +14,7 @@ export interface SilhouetteOption {
   name: string;
   subtitle: string;
   description: string;
-  image: string;
+  image?: string;
   characteristics: string[];
 }
 
@@ -40,8 +40,10 @@ export interface BudgetOption {
   id: string;
   range: string;
   tier: string;
+  prices: string[];
   description: string;
   includes: string[];
+  note: string;
 }
 
 export interface PriorityOption {
@@ -80,8 +82,11 @@ export interface ConsultationDossier {
   occasion: OccasionType | '';
   date: string;
   timeline: string;
+  settings: string[];
+  settingOther: string;
+  eventCity: string;
   budget: string;
-  silhouette: string;
+  silhouette: string[];
   style: string;
   colors: string[];
   measurements: ClientMeasurements;

@@ -1,12 +1,11 @@
 export type SupportedLanguage = 'ru' | 'en';
 
 export interface TranslationDict {
+  brandName: string;
+  brandTagline: string;
   badge: string;
-  appTitlePart1: string;
-  appTitlePart2: string;
-  appDescription: string;
-  campaignQuoteBadge: string;
-  campaignQuote: string;
+  appTitle: string;
+  appIntro: string[];
   stats: {
     time: { title: string; desc: string };
     ai: { title: string; desc: string };
@@ -14,9 +13,9 @@ export interface TranslationDict {
   };
   startBtn: string;
   citiesFooter: string;
+  citiesFooterSub: string;
 
   // Header
-  miniAppBadge: string;
   atelierDeskBtn: string;
   clientAppBtn: string;
   stepIndicator: (current: number, total: number) => string;
@@ -37,23 +36,44 @@ export interface TranslationDict {
   step02DateLabel: string;
   step02DatePlaceholder: string;
   step02TimelineLabel: string;
+  step02TimelineNote: string;
+  step02TimelineAutoHint: string;
   step02SettingLabel: string;
+  step02SettingHint: string;
+  step02OtherLabel: string;
+  step02OtherPlaceholder: string;
+  step02CityLabel: string;
+  step02CityPlaceholder: string;
   step02Continue: string;
+  step02PageFooterBrand: string;
+  step02PageFooterPlace: string;
+  step02PageFooterMode: string;
 
   // Step Budget
   step03Badge: string;
   step03Title: string;
   step03TitleItalic: string;
   step03Subtitle: string;
+  step03Disclaimer: string;
   step03IncludedBadge: string;
   step03Continue: string;
+  step03SelectHint: string;
+  step03PageFooterBrand: string;
+  step03PageFooterPlace: string;
+  step03PageFooterMode: string;
 
   // Step Silhouette
   step04Badge: string;
   step04Title: string;
   step04TitleItalic: string;
   step04Subtitle: string;
+  step04Note: string;
   step04Continue: string;
+  step04SelectHint: string;
+  step04PageFooterBrand: string;
+  step04PageFooterPlace: string;
+  step04PageFooterMode: string;
+  step04PageFooterTag: string;
 
   // Step Style
   step05Badge: string;
@@ -185,27 +205,29 @@ export interface TranslationDict {
 
 export const TRANSLATIONS: Record<SupportedLanguage, TranslationDict> = {
   ru: {
-    badge: 'Консультационное Досье Ателье',
-    appTitlePart1: 'Архитектура',
-    appTitlePart2: 'Современного Кутюра',
-    appDescription:
-      'Подготовка к вашей первой встрече в MARGO Atelier. Визуальное погружение для выбора силуэта, благородных тканей и индивидуальных пропорций — с созданием персонального предложения и AI Style Direction от Gemini.',
-    campaignQuoteBadge: 'Кампания · Средиземноморский Свет',
-    campaignQuote:
-      '«Настоящий кутюр не кричит. Он наполняет пространство безупречностью архитектурной линии и благородством чистого шелка».',
+    brandName: 'MARGO Bridal & Special Occasion',
+    brandTagline: 'Свадебные и вечерние платья · Ткани · Аксессуары',
+    badge: 'Подбор образа',
+    appTitle: 'Ваш образ для особенного события',
+    appIntro: [
+      'Свадебные и вечерние платья, красивые ткани и аксессуары — в MARGO Bridal & Special Occasion в Onrus, Western Cape, South Africa.',
+      'Этот короткий опрос поможет вам определиться с пожеланиями, а нам — подготовиться к вашей первой встрече.',
+      'Расскажите о событии и выберите образы, которые вам нравятся. На консультации мы обсудим подходящие силуэты, ткани и детали — для выбора готового платья или заказа по выбранной модели.',
+      'Встречи в ателье — по предварительной записи. Онлайн-консультации также доступны.',
+    ],
     stats: {
-      time: { title: '3 Минуты', desc: 'Визуальный выбор' },
-      ai: { title: 'AI-Концепт', desc: 'Стилевой синтез' },
-      privacy: { title: 'Приватно', desc: 'Напрямую кутюрье' },
+      time: { title: 'Короткий опрос', desc: 'Ваше событие и пожелания' },
+      ai: { title: 'Ваш стиль', desc: 'Силуэты, ткани и детали' },
+      privacy: { title: 'Личная встреча', desc: 'В ателье или онлайн' },
     },
-    startBtn: 'Сформировать Досье и Предложение',
-    citiesFooter: 'Милан · Париж · Дубай · Онлайн-Салон',
+    startBtn: 'Начать подбор образа',
+    citiesFooter: 'Onrus · Western Cape · South Africa',
+    citiesFooterSub: 'В ателье и онлайн',
 
-    miniAppBadge: 'Telegram Mini App',
     atelierDeskBtn: 'Консоль Ателье',
     clientAppBtn: 'Досье Клиента',
     stepIndicator: (current, total) => `Шаг ${String(current).padStart(2, '0')} из ${String(total).padStart(2, '0')}`,
-    headerSub: 'Кутюрная Консультация',
+    headerSub: 'Консультация',
 
     step01Badge: 'Шаг 01 · Повод и Формат',
     step01Title: 'Ваш особенный',
@@ -213,28 +235,54 @@ export const TRANSLATIONS: Record<SupportedLanguage, TranslationDict> = {
     step01Subtitle: 'Каждое кутюрное изделие начинается с контекста атмосферы и света предстоящего события.',
     step01Continue: 'Перейти к Дате и Атмосфере',
 
-    step02Badge: 'Шаг 02 · Дата и Локация',
-    step02Title: 'Когда состоится',
-    step02TitleItalic: 'торжество?',
-    step02Subtitle: 'Индивидуальный пошив требует времени для подбора тканей в Комо и ручных примерок.',
-    step02DateLabel: 'Точная дата события (по желанию)',
-    step02DatePlaceholder: 'дд.мм.гггг',
-    step02TimelineLabel: 'Ориентировочный срок до события',
-    step02SettingLabel: 'Атмосфера и локация',
-    step02Continue: 'Перейти к Бюджету и Классу Пошива',
+    step02Badge: 'Шаг 02 · Ваше событие',
+    step02Title: 'Когда и где состоится',
+    step02TitleItalic: 'ваше событие?',
+    step02Subtitle:
+      'Расскажите о дате и месте проведения. Это поможет нам предложить подходящий образ и обсудить время на выбор платья, возможную подгонку или изготовление на заказ.',
+    step02DateLabel: 'Дата события — если уже известна',
+    step02DatePlaceholder: 'Выберите дату',
+    step02TimelineLabel: 'Сколько времени осталось до события?',
+    step02TimelineNote: 'Возможность заказа и сроки изготовления уточняются на консультации.',
+    step02TimelineAutoHint: 'Срок рассчитан по выбранной дате',
+    step02SettingLabel: 'Где и в каком формате пройдёт событие?',
+    step02SettingHint: 'Выберите подходящие варианты.',
+    step02OtherLabel: 'Расскажите коротко о месте или формате события.',
+    step02OtherPlaceholder: 'Кратко опишите место или формат',
+    step02CityLabel: 'В каком городе или регионе состоится событие?',
+    step02CityPlaceholder: 'Укажите город или регион.',
+    step02Continue: 'Далее: ваш бюджет и пожелания',
+    step02PageFooterBrand: 'MARGO Bridal & Special Occasion',
+    step02PageFooterPlace: 'Onrus, Western Cape, South Africa',
+    step02PageFooterMode: 'В ателье и онлайн',
 
-    step03Badge: 'Шаг 03 · Категория Кутюра',
-    step03Title: 'Инвестиции и',
-    step03TitleItalic: 'уровень пошива',
-    step03Subtitle: 'Прозрачная кутюрная градация: от адаптации архивных лекал до эксклюзивного Sur-Mesure.',
-    step03IncludedBadge: 'В этот уровень входит:',
+    step03Badge: 'Шаг 03 · Формат и бюджет',
+    step03Title: 'Какой вариант',
+    step03TitleItalic: 'вам ближе?',
+    step03Subtitle:
+      'Выберите направление и комфортный ориентир бюджета. Это поможет нам подготовить подходящие предложения к консультации.',
+    step03Disclaimer:
+      'Указанные цены являются предварительными ориентирами. Итоговая стоимость зависит от модели, ткани, конструкции и отделки и согласовывается до начала изготовления. Все цены указываются в южноафриканских рандах — ZAR / R.',
+    step03IncludedBadge: 'Что входит:',
     step03Continue: 'Перейти к Выбору Силуэта',
+    step03SelectHint: 'Выберите вариант',
+    step03PageFooterBrand: 'MARGO Bridal & Special Occasion',
+    step03PageFooterPlace: 'Onrus, Western Cape, South Africa',
+    step03PageFooterMode: 'Консультации в ателье и онлайн.',
 
-    step04Badge: 'Шаг 04 · Архитектура Силуэта',
-    step04Title: 'Чистота',
-    step04TitleItalic: 'силуэта и линий',
-    step04Subtitle: 'Скульптурная основа вашего платья. Выберите форму, наиболее близкую вашей пластике.',
-    step04Continue: 'Перейти к Стилистике',
+    step04Badge: 'Шаг 04 · Выбор силуэта',
+    step04Title: 'Какой силуэт',
+    step04TitleItalic: 'вам нравится?',
+    step04Subtitle:
+      'Выберите один или несколько вариантов, которые вам близки. На примерке мы поможем уточнить форму, посадку и детали с учётом ваших пожеланий.',
+    step04Note:
+      'Изображения помогают выбрать направление стиля. Ткань, цвет, детали и возможность изготовления обсуждаются на консультации.',
+    step04Continue: 'Далее: стиль и детали',
+    step04SelectHint: 'Выберите силуэт',
+    step04PageFooterBrand: 'MARGO Bridal & Special Occasion',
+    step04PageFooterPlace: 'Onrus, Western Cape, South Africa',
+    step04PageFooterMode: 'В ателье и онлайн',
+    step04PageFooterTag: 'Платья · Ткани · Аксессуары',
 
     step05Badge: 'Шаг 05 · Эстетический Дух',
     step05Title: 'Стилевой',
@@ -319,7 +367,7 @@ export const TRANSLATIONS: Record<SupportedLanguage, TranslationDict> = {
     aiArchitecturalDetails: 'Архитектурные Особенности Кроя',
     aiConsultationFocus: 'Фокус Первой Консультации в Ателье',
 
-    btnBookWhatsapp: 'Записаться на консультацию в WhatsApp',
+    btnBookWhatsapp: 'Записаться на консультацию',
     btnSendTelegram: 'Отправить досье в Ателье через Telegram',
     btnSending: 'Отправка в Ателье...',
     btnSent: 'Досье отправлено в Telegram-бот',
@@ -349,31 +397,33 @@ export const TRANSLATIONS: Record<SupportedLanguage, TranslationDict> = {
     statusFitting: 'Макетирование (Toile)',
     statusCompleted: 'В производстве',
 
-    footerSlogan: 'MARGO ATELIER · Haute Couture Sur-Mesure',
-    footerWords: ['Тихий люкс', 'Средиземноморский свет', 'Благородные ткани'],
+    footerSlogan: 'MARGO Bridal & Special Occasion · Onrus',
+    footerWords: ['Свадебные платья', 'Вечерние образы', 'Ткани и аксессуары'],
   },
   en: {
-    badge: 'Atelier Consultation Dossier',
-    appTitlePart1: 'The Architecture of',
-    appTitlePart2: 'Modern Couture',
-    appDescription:
-      'Prepare for your first private appointment at MARGO Atelier. A guided visual journey to articulate your silhouette, noble fabrics, and personal vision — culminating in a custom Gemini AI Style Direction.',
-    campaignQuoteBadge: 'Campaign Series · Mediterranean Light',
-    campaignQuote:
-      '“True couture does not shout. It holds space through pure architectural line and noble silk.”',
+    brandName: 'MARGO Bridal & Special Occasion',
+    brandTagline: 'Bridal & Evening Dresses · Fabrics · Accessories',
+    badge: 'Look selection',
+    appTitle: 'Your look for a special occasion',
+    appIntro: [
+      'Bridal and evening dresses, beautiful fabrics and accessories — at MARGO Bridal & Special Occasion in Onrus, Western Cape, South Africa.',
+      'This short questionnaire helps you clarify your wishes and helps us prepare for your first appointment.',
+      'Tell us about your event and choose looks you like. At the consultation we will discuss suitable silhouettes, fabrics and details — to select a ready dress or order from a chosen model.',
+      'Atelier appointments are by prior booking. Online consultations are also available.',
+    ],
     stats: {
-      time: { title: '3 Minutes', desc: 'Visual curation' },
-      ai: { title: 'AI Direction', desc: 'Bespoke synthesis' },
-      privacy: { title: 'Private', desc: 'Direct to Couturier' },
+      time: { title: 'Short survey', desc: 'Your event and wishes' },
+      ai: { title: 'Your style', desc: 'Silhouettes, fabrics & details' },
+      privacy: { title: 'Private meeting', desc: 'In atelier or online' },
     },
-    startBtn: 'Begin Consultation Dossier',
-    citiesFooter: 'Milan · Paris · Dubai · Virtual Salon',
+    startBtn: 'Start look selection',
+    citiesFooter: 'Onrus · Western Cape · South Africa',
+    citiesFooterSub: 'In atelier and online',
 
-    miniAppBadge: 'Telegram Mini App',
     atelierDeskBtn: 'Atelier Desk',
     clientAppBtn: 'Client App',
     stepIndicator: (current, total) => `Step ${String(current).padStart(2, '0')} of ${String(total).padStart(2, '0')}`,
-    headerSub: 'AI Couture Consultation',
+    headerSub: 'Consultation',
 
     step01Badge: 'Step 01 · Occasion & Setting',
     step01Title: 'Your distinct',
@@ -381,28 +431,54 @@ export const TRANSLATIONS: Record<SupportedLanguage, TranslationDict> = {
     step01Subtitle: 'Every couture creation begins with the context, light, and atmosphere of your event.',
     step01Continue: 'Continue to Date & Atmosphere',
 
-    step02Badge: 'Step 02 · Timeline & Setting',
-    step02Title: 'When is your',
-    step02TitleItalic: 'celebration?',
-    step02Subtitle: 'Atelier bespoke requires measured time for fabric milling in Como and iterative fittings.',
-    step02DateLabel: 'Exact Event Date (Optional)',
-    step02DatePlaceholder: 'YYYY-MM-DD',
-    step02TimelineLabel: 'Estimated Horizon',
-    step02SettingLabel: 'Event Setting & Atmosphere',
-    step02Continue: 'Continue to Investment & Tier',
+    step02Badge: 'Step 02 · Your Event',
+    step02Title: 'When and where is',
+    step02TitleItalic: 'your event?',
+    step02Subtitle:
+      'Tell us about the date and venue. This helps us suggest a suitable look and discuss time for dress selection, possible alterations, or made-to-order.',
+    step02DateLabel: 'Event date — if already known',
+    step02DatePlaceholder: 'Select a date',
+    step02TimelineLabel: 'How much time is left until the event?',
+    step02TimelineNote: 'Order options and production timelines are confirmed at the consultation.',
+    step02TimelineAutoHint: 'Timeline calculated from the selected date',
+    step02SettingLabel: 'Where and in what format will the event take place?',
+    step02SettingHint: 'Select all that apply.',
+    step02OtherLabel: 'Briefly describe the place or format of the event.',
+    step02OtherPlaceholder: 'Short description of place or format',
+    step02CityLabel: 'In which city or region will the event take place?',
+    step02CityPlaceholder: 'Enter a city or region.',
+    step02Continue: 'Next: your budget and preferences',
+    step02PageFooterBrand: 'MARGO Bridal & Special Occasion',
+    step02PageFooterPlace: 'Onrus, Western Cape, South Africa',
+    step02PageFooterMode: 'In atelier and online',
 
-    step03Badge: 'Step 03 · Couture Category',
-    step03Title: 'Investment &',
-    step03TitleItalic: 'craftsmanship tier',
-    step03Subtitle: 'Transparent couture tiers: from made-to-measure archives to completely original Sur-Mesure.',
-    step03IncludedBadge: 'Included in this tier:',
+    step03Badge: 'Step 03 · Format & Budget',
+    step03Title: 'Which option feels',
+    step03TitleItalic: 'closer to you?',
+    step03Subtitle:
+      'Choose a direction and a comfortable budget guide. This helps us prepare suitable proposals for your consultation.',
+    step03Disclaimer:
+      'The prices shown are preliminary guides. The final cost depends on the model, fabric, construction and finishing, and is agreed before production begins. All prices are shown in South African rand — ZAR / R.',
+    step03IncludedBadge: 'Included:',
     step03Continue: 'Continue to Silhouette Line',
+    step03SelectHint: 'Select an option',
+    step03PageFooterBrand: 'MARGO Bridal & Special Occasion',
+    step03PageFooterPlace: 'Onrus, Western Cape, South Africa',
+    step03PageFooterMode: 'Consultations in atelier and online.',
 
-    step04Badge: 'Step 04 · Architectural Silhouette',
-    step04Title: 'The geometry of',
-    step04TitleItalic: 'silhouette',
-    step04Subtitle: 'The structural foundation of your piece. Choose the line that speaks to your posture.',
-    step04Continue: 'Continue to Style Spirit',
+    step04Badge: 'Step 04 · Silhouette Choice',
+    step04Title: 'Which silhouette',
+    step04TitleItalic: 'do you like?',
+    step04Subtitle:
+      'Choose one or more options that feel close to you. At the fitting we will help refine the shape, fit and details around your wishes.',
+    step04Note:
+      'Images help you choose a style direction. Fabric, colour, details and production options are discussed at the consultation.',
+    step04Continue: 'Next: style and details',
+    step04SelectHint: 'Select a silhouette',
+    step04PageFooterBrand: 'MARGO Bridal & Special Occasion',
+    step04PageFooterPlace: 'Onrus, Western Cape, South Africa',
+    step04PageFooterMode: 'In atelier and online',
+    step04PageFooterTag: 'Dresses · Fabrics · Accessories',
 
     step05Badge: 'Step 05 · Style Essence',
     step05Title: 'Your aesthetic',
@@ -487,7 +563,7 @@ export const TRANSLATIONS: Record<SupportedLanguage, TranslationDict> = {
     aiArchitecturalDetails: 'Architectural Cut Details',
     aiConsultationFocus: 'Atelier Consultation Focus Points',
 
-    btnBookWhatsapp: 'Book a Consultation / WhatsApp Atelier',
+    btnBookWhatsapp: 'Book a consultation',
     btnSendTelegram: 'Send to Atelier via Telegram',
     btnSending: 'Transmitting Dossier...',
     btnSent: 'Dossier Sent via Telegram Bot',
@@ -517,7 +593,7 @@ export const TRANSLATIONS: Record<SupportedLanguage, TranslationDict> = {
     statusFitting: 'Toile Prototype',
     statusCompleted: 'In Production',
 
-    footerSlogan: 'MARGO ATELIER · Haute Couture Sur-Mesure',
-    footerWords: ['Quiet Luxury', 'Mediterranean Light', 'Noble Fabrics'],
+    footerSlogan: 'MARGO Bridal & Special Occasion · Onrus',
+    footerWords: ['Bridal dresses', 'Evening looks', 'Fabrics & accessories'],
   },
 };

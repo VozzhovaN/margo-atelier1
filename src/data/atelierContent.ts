@@ -8,7 +8,11 @@ import bridalImg from '../assets/images/margo_bridal_editorial_1789726696806.jpg
 import eveningImg from '../assets/images/margo_evening_editorial_1789726710943.jpg';
 import specialOccasionImg from '../assets/images/margo_special_occasion_1789726725864.jpg';
 import customDressImg from '../assets/images/margo_custom_dress_1789726740808.jpg';
-import columnImg from '../assets/images/margo_silhouette_column_1789726757308.jpg';
+import columnImg from '../assets/images/margo_silhouette_column.png';
+import alineImg from '../assets/images/margo_silhouette_aline.jpg';
+import slipImg from '../assets/images/margo_silhouette_slip.png';
+import coatDressImg from '../assets/images/margo_silhouette_coatdress.jpg';
+import mermaidImg from '../assets/images/margo_silhouette_mermaid.jpg';
 import fabricImg from '../assets/images/margo_fabric_detail_1789726769694.jpg';
 
 export const CAMPAIGN_ASSETS = {
@@ -105,109 +109,128 @@ export interface LocalizedSilhouette {
   name: Record<SupportedLanguage, string>;
   subtitle: Record<SupportedLanguage, string>;
   description: Record<SupportedLanguage, string>;
-  image: string;
+  image?: string;
   characteristics: Record<SupportedLanguage, string[]>;
 }
 
 export const SILHOUETTES_DATA: LocalizedSilhouette[] = [
   {
-    id: 'architectural_column',
+    id: 'column',
     name: {
-      ru: 'Архитектурная Колонна',
-      en: 'Architectural Column',
+      ru: 'Прямой силуэт / Колонна',
+      en: 'Straight silhouette / Column',
     },
     subtitle: {
-      ru: 'Статусные и Чистые Геометрические Линии',
-      en: 'Statuesque & Pure Geometric Lines',
+      ru: 'Чистые линии',
+      en: 'Clean lines',
     },
     description: {
-      ru: 'Лаконичный вертикальный крой в пол, визуально вытягивающий осанку, со скрытым разрезом или шлейфом.',
-      en: 'Clean, floor-length vertical drape sculpted to elongate posture with subtle rear slit or detached train.',
+      ru: 'Лаконичное платье с узкой, почти прямой юбкой. Мягко следует линиям фигуры и создаёт спокойный, элегантный образ.',
+      en: 'A laconic dress with a narrow, almost straight skirt. It softly follows the body’s lines and creates a calm, elegant look.',
     },
     image: columnImg,
     characteristics: {
-      ru: ['Вытягивающая вертикаль', 'Тяжелый шелковый креп', 'Лаконичный подол'],
-      en: ['Elongating verticality', 'Heavyweight silk crêpe', 'Clean minimalist hem'],
+      ru: ['Прямая юбка', 'Минимум объёма', 'Лаконичный крой'],
+      en: ['Straight skirt', 'Minimal volume', 'Laconic cut'],
     },
   },
   {
-    id: 'ethereal_aline',
+    id: 'aline',
     name: {
-      ru: 'Воздушный Драпированный А-Силуэт',
-      en: 'Ethereal Draped A-Line',
+      ru: 'А-силуэт',
+      en: 'A-line',
     },
     subtitle: {
-      ru: 'Летящий Объем & Женственная Пластика',
-      en: 'Floating Volume & Feminine Movement',
+      ru: 'Мягкий объём',
+      en: 'Soft volume',
     },
     description: {
-      ru: 'Мягкий скульптурный корсетный лиф со струящимися слоями шифона или органзы, оживающими в движении.',
-      en: 'Soft structural bodice with layered fluid chiffon or organza that catches natural breeze and sunlight.',
+      ru: 'Прилегающий лиф, подчёркнутая талия и юбка, постепенно расширяющаяся книзу. Сатин создаёт красивые складки и выразительный силуэт.',
+      en: 'A fitted bodice, defined waist and a skirt that gradually widens toward the hem. Satin creates beautiful folds and a clear silhouette.',
     },
-    image: customDressImg,
+    image: alineImg,
     characteristics: {
-      ru: ['Невесомая шелковая органза', 'Свободное парящее движение', 'Скульптурная естественная талия'],
-      en: ['Airy silk organza', 'Floating movement', 'Sculpted natural waist'],
+      ru: ['Подчёркнутая талия', 'Расширение от талии', 'Мягкие складки'],
+      en: ['Defined waist', 'Flare from the waist', 'Soft folds'],
     },
   },
   {
-    id: 'sensual_bias_slip',
+    id: 'slip_bias',
     name: {
-      ru: 'Чувственный Slip по Косой',
-      en: 'Sensual Bias-Cut Slip',
+      ru: 'Платье-комбинация / Крой по косой',
+      en: 'Slip dress / Bias cut',
     },
     subtitle: {
-      ru: 'Жидкий Шелк & Эстетика 90-х',
-      en: 'Liquid Fluidity & 90s Couture Ease',
+      ru: 'Плавные линии',
+      en: 'Fluid lines',
     },
     description: {
-      ru: 'Крой по косой нити для идеального мягкого облегания тела, с глубокой открытой спиной и тонкими бретелями.',
-      en: 'Cut on the true fabric bias to mold softly over curves, featuring low open back and effortless shoulder straps.',
+      ru: 'Платье на тонких бретелях с мягко струящейся юбкой. Крой по косой позволяет ткани плавно следовать линиям фигуры.',
+      en: 'A thin-strap dress with a softly flowing skirt. The bias cut lets the fabric follow the body’s lines smoothly.',
     },
-    image: eveningImg,
+    image: slipImg,
     characteristics: {
-      ru: ['Текучая пластика шелка', 'Скульптурная открытая спина', 'Двусторонний шелковый атлас'],
-      en: ['Diagonal liquid drape', 'Sculptural open back', 'Double-faced silk satin'],
+      ru: ['Тонкие бретели', 'Мягкая драпировка', 'Струящаяся юбка'],
+      en: ['Thin straps', 'Soft draping', 'Fluid skirt'],
     },
   },
   {
-    id: 'tailored_couture_suit',
+    id: 'coat_dress',
     name: {
-      ru: 'Кутюрное Платье-Жакет / Смокинг',
-      en: 'Tailored Coat Dress / Tux',
+      ru: 'Платье-жакет',
+      en: 'Coat dress',
     },
     subtitle: {
-      ru: 'Современный Тейлоринг & Решительные Линии',
-      en: 'Sharp Modern Tailoring & Decisive Lines',
+      ru: 'Структура и элегантность',
+      en: 'Structure & elegance',
     },
     description: {
-      ru: 'Структурированные плечи, ручные вспушные швы лацканов и внутренний корсетный пояс из шелкового репса.',
-      en: 'Structured shoulders, hand-stitched lapels and corseted internal waist balancing feminine authority with luxury.',
+      ru: 'Выразительная линия плеч, лацканы и приталенный крой. Современный вариант для регистрации брака, торжества или особенной встречи.',
+      en: 'A clear shoulder line, lapels and a fitted cut. A modern option for a marriage registration, celebration or special meeting.',
     },
-    image: specialOccasionImg,
+    image: coatDressImg,
     characteristics: {
-      ru: ['Четкая линия плеч', 'Внутренний репсовый корсет', 'Шелк с добавлением шерсти'],
-      en: ['Sharp shoulder line', 'Concealed silk grosgrain waist', 'Raw silk & wool blend'],
+      ru: ['Чёткая линия плеч', 'Лацканы', 'Приталенный крой'],
+      en: ['Clear shoulder line', 'Lapels', 'Fitted cut'],
     },
   },
   {
-    id: 'sculptural_mermaid',
+    id: 'mermaid',
     name: {
-      ru: 'Скульптурная Русалка / Годе',
-      en: 'Sculptural Trumpet / Mermaid',
+      ru: 'Русалка / Юбка годе',
+      en: 'Mermaid / Godet skirt',
     },
     subtitle: {
-      ru: 'Прецизионный Анатомический Контур',
-      en: 'Precision Tailored Contour',
+      ru: 'Выразительный силуэт',
+      en: 'Expressive silhouette',
     },
     description: {
-      ru: 'Точно посаженный лиф с мягким расширением выше колена, создающий статусные пропорции высокого кутюра.',
-      en: 'Close-fitting bodice gently fluting outward above the knee, creating statuesque dramatic proportions.',
+      ru: 'Платье облегает фигуру в области талии и бёдер, затем расширяется ближе к коленям. Выразительный силуэт с эффектной линией юбки.',
+      en: 'The dress fits the waist and hips, then flares closer to the knees. An expressive silhouette with a striking skirt line.',
     },
-    image: bridalImg,
+    image: mermaidImg,
     characteristics: {
-      ru: ['Анатомический контур', 'Архитектурные рельефы', 'Деликатный шлейф'],
-      en: ['Contoured silhouette', 'Architectural seamlines', 'Subtle flared train'],
+      ru: ['Прилегание по бёдрам', 'Расширение ближе к коленям', 'Шлейф — по желанию'],
+      en: ['Fitted through the hips', 'Flare near the knees', 'Train — optional'],
+    },
+  },
+  {
+    id: 'undecided',
+    name: {
+      ru: 'Пока не определилась',
+      en: 'Not decided yet',
+    },
+    subtitle: {
+      ru: 'Дополнительный вариант',
+      en: 'Additional option',
+    },
+    description: {
+      ru: 'Хочу попробовать разные силуэты на примерке.',
+      en: 'I want to try different silhouettes at the fitting.',
+    },
+    characteristics: {
+      ru: [],
+      en: [],
     },
   },
 ];
@@ -405,113 +428,113 @@ export interface LocalizedBudget {
   id: string;
   range: string;
   tier: Record<SupportedLanguage, string>;
+  prices: Record<SupportedLanguage, string[]>;
   description: Record<SupportedLanguage, string>;
   includes: Record<SupportedLanguage, string[]>;
+  note: Record<SupportedLanguage, string>;
 }
 
 export const BUDGET_TIERS_DATA: LocalizedBudget[] = [
   {
     id: 'tier_signature',
-    range: '€2,500 – €4,000',
+    range: 'MARGO Signature',
     tier: {
-      ru: 'Atelier Essential · Базовый Кутюр',
-      en: 'Atelier Essential',
+      ru: 'MARGO Signature · Наша коллекция',
+      en: 'MARGO Signature · Our Collection',
+    },
+    prices: {
+      ru: ['Вечерние платья: R4 500–R9 000', 'Свадебные платья: R10 000–R18 000'],
+      en: ['Evening dresses: R4 500–R9 000', 'Bridal dresses: R10 000–R18 000'],
     },
     description: {
-      ru: 'Индивидуальная адаптация знаковых архивных силуэтов MARGO из благородного шелкового крепа.',
-      en: 'Made-to-measure adaptation of signature MARGO silhouette archives with noble silk crêpe.',
+      ru: 'Фирменные модели MARGO из сатина и других выбранных тканей — чистые линии, женственные силуэты и выразительные драпировки.',
+      en: 'Signature MARGO designs in satin and other selected fabrics — clean lines, feminine silhouettes and expressive draping.',
     },
     includes: {
       ru: [
-        'Выбор из знаковых силуэтов архива ателье',
-        'Итальянский шелковый креп или тяжелый крепдешин',
-        '2 индивидуальные примерки с подгонкой по осанке',
-        'Фирменный чехол ателье и набор для ухода за шелком',
+        'Выбор модели из коллекции MARGO.',
+        'Подбор доступной ткани и цвета.',
+        'Обсуждение посадки и возможных изменений.',
+        'Готовое платье или изготовление по выбранной модели.',
       ],
       en: [
-        'Selection of signature silhouettes',
-        'Italian silk crêpe or heavy crêpe de chine',
-        '2 bespoke fitting sessions',
-        'Standard atelier garment bag & care kit',
+        'Choosing a design from the MARGO collection.',
+        'Selecting available fabric and colour.',
+        'Discussing fit and possible adjustments.',
+        'A ready dress or made-to-order from a chosen model.',
       ],
+    },
+    note: {
+      ru: 'Наличие, возможность изменений и стоимость подгонки уточняются для конкретного платья.',
+      en: 'Availability, possible alterations and fitting costs are confirmed for each specific dress.',
+    },
+  },
+  {
+    id: 'tier_bespoke',
+    range: 'MARGO Bespoke',
+    tier: {
+      ru: 'MARGO Bespoke · Индивидуальный дизайн',
+      en: 'MARGO Bespoke · Individual Design',
+    },
+    prices: {
+      ru: ['Вечерние платья: R12 000–R25 000', 'Свадебные платья: R18 000–R35 000'],
+      en: ['Evening dresses: R12 000–R25 000', 'Bridal dresses: R18 000–R35 000'],
+    },
+    description: {
+      ru: 'Платье, разработанное с учётом вашего события, фигуры и личного стиля.',
+      en: 'A dress developed around your event, figure and personal style.',
+    },
+    includes: {
+      ru: [
+        'Обсуждение идеи и разработка дизайна.',
+        'Подбор силуэта, декольте, рукавов и деталей.',
+        'Выбор тканей в рамках согласованного бюджета.',
+        'Изготовление по меркам и примерки по плану заказа.',
+      ],
+      en: [
+        'Discussing the idea and developing the design.',
+        'Choosing silhouette, neckline, sleeves and details.',
+        'Selecting fabrics within the agreed budget.',
+        'Made-to-measure production and fittings as planned.',
+      ],
+    },
+    note: {
+      ru: 'Дизайн, состав работ и сроки согласовываются индивидуально.',
+      en: 'Design, scope of work and timelines are agreed individually.',
     },
   },
   {
     id: 'tier_couture',
-    range: '€4,000 – €7,000',
+    range: 'MARGO Couture',
     tier: {
-      ru: 'Couture Bespoke · Индивидуальный Крой',
-      en: 'Couture Bespoke',
+      ru: 'MARGO Couture · Эксклюзивный проект',
+      en: 'MARGO Couture · Exclusive Project',
+    },
+    prices: {
+      ru: ['Ориентировочно R30 000–R60 000+', 'По индивидуальному запросу.'],
+      en: ['Approximately R30 000–R60 000+', 'By individual request.'],
     },
     description: {
-      ru: 'Индивидуальная линия декольте, драпировки и подбор эксклюзивных отрезов шелка с фабрик озера Комо.',
-      en: 'Custom neckline, individualized drapery, and dedicated fabric sourcing from Lake Como mills.',
+      ru: 'Для особенного образа со сложной конструкцией, выразительными деталями и тщательно продуманной отделкой.',
+      en: 'For a special look with complex construction, expressive details and carefully considered finishing.',
     },
     includes: {
       ru: [
-        'Индивидуальный архитектурный вырез и конструкция шлейфа',
-        'Премиальный шелковый атлас дюшес и органза (Комо)',
-        '3 примерки, включая черновой хлопковый макет (toile)',
-        'Личное ведение проекта креативным директором ателье',
+        'Индивидуальная разработка модели.',
+        'Работа с объёмом, драпировками и конструкцией.',
+        'Подбор тканей и декоративных элементов.',
+        'Макет и дополнительные примерки при необходимости.',
       ],
       en: [
-        'Customized architectural neckline & train',
-        'Premium Como double-faced satin & organza',
-        '3 precision fittings including cotton toile prototype',
-        'Dedicated atelier design director guidance',
+        'Individual model development.',
+        'Work with volume, draping and construction.',
+        'Selecting fabrics and decorative elements.',
+        'A toile and additional fittings when needed.',
       ],
     },
-  },
-  {
-    id: 'tier_haute',
-    range: '€7,000 – €12,000',
-    tier: {
-      ru: 'Haute Couture Sur-Mesure · Эксклюзив',
-      en: 'Haute Couture Sur-Mesure',
-    },
-    description: {
-      ru: 'Полностью оригинальное изделие, рожденное на вашей фигуре, с тончайшей ручной отделкой швов.',
-      en: 'Entirely original design sculpted on client proportions with artisanal hand-finished craftsmanship.',
-    },
-    includes: {
-      ru: [
-        'Полностью индивидуальный авторский эскиз и макет',
-        'Эксклюзивные винтажные полотна или шелк индивидуального крашения',
-        '4-5 примерок в закрытом салоне ателье',
-        'Возможность выезда главного кутюрье на площадку в день события',
-      ],
-      en: [
-        'Completely bespoke one-off design sketch & toile',
-        'Exclusive vintage textile or custom dyed silks',
-        '4-5 dedicated atelier fitting sessions',
-        'Atelier Master Couturier direct styling on event day option',
-      ],
-    },
-  },
-  {
-    id: 'tier_atelier_private',
-    range: '€12,000+',
-    tier: {
-      ru: 'Private Wardrobe · Частная Капсула',
-      en: 'Private Wardrobe & High Bespoke',
-    },
-    description: {
-      ru: 'Капсульный гардероб из нескольких изделий, закрытые салонные примерки с шампанским и кутюрная вышивка.',
-      en: 'Multi-look wedding/gala capsule, private salon fittings, and bespoke embroidery/draping.',
-    },
-    includes: {
-      ru: [
-        'Комплекс из нескольких образов (Платье + Вечерний кейп/пальто)',
-        'Ткани индивидуального ткачества и ручные французские подгибы',
-        'VIP-примерки в закрытом салоне с сервисом консьержа',
-        'Международные выездные примерки (Милан / Париж / Дубай)',
-      ],
-      en: [
-        'Multi-piece capsule (Gown + Reception or Coat)',
-        'Custom loom textile weaving & hand-rolled hems',
-        'Private salon appointments with champagne service',
-        'International fitting availability (Milan / Paris / Dubai)',
-      ],
+    note: {
+      ru: 'Возможность реализации, материалы, отделка и стоимость определяются после обсуждения проекта.',
+      en: 'Feasibility, materials, finishing and cost are defined after discussing the project.',
     },
   },
 ];
@@ -582,26 +605,81 @@ export const PRIORITIES_DATA: LocalizedPriority[] = [
 
 export const TIMELINE_OPTIONS_DATA = [
   {
+    id: 'under1m',
+    label: { ru: 'Меньше месяца', en: 'Less than a month' },
+  },
+  {
     id: '1-2m',
-    label: { ru: '1 – 2 Месяца', en: '1 – 2 Months' },
-    note: { ru: 'Приоритетный график ателье', en: 'Priority Atelier Schedule' },
+    label: { ru: '1–2 месяца', en: '1–2 months' },
   },
   {
     id: '3-5m',
-    label: { ru: '3 – 5 Месяцев', en: '3 – 5 Months' },
-    note: { ru: 'Идеальный кутюрный срок', en: 'Ideal Couture Timeline' },
+    label: { ru: '3–5 месяцев', en: '3–5 months' },
   },
   {
-    id: '6-9m',
-    label: { ru: '6 – 9 Месяцев', en: '6 – 9 Months' },
-    note: { ru: 'Размеренный индивидуальный процесс', en: 'Unrushed Bespoke Process' },
+    id: '6m+',
+    label: { ru: '6 месяцев и более', en: '6 months or more' },
   },
   {
-    id: '10m+',
-    label: { ru: '10+ Месяцев', en: '10+ Months' },
-    note: { ru: 'Заблаговременная подготовка', en: 'Advance Bridal Planning' },
+    id: 'undecided',
+    label: { ru: 'Дата пока не определена', en: 'Date not yet decided' },
   },
 ];
+
+export const EVENT_SETTINGS_DATA = [
+  {
+    id: 'coast',
+    label: { ru: 'На побережье / На пляже', en: 'Coastal / Beach' },
+  },
+  {
+    id: 'garden',
+    label: { ru: 'В саду / На открытом воздухе', en: 'Garden / Outdoors' },
+  },
+  {
+    id: 'wine_estate',
+    label: { ru: 'На винной ферме / В загородном поместье', en: 'Wine farm / Country estate' },
+  },
+  {
+    id: 'hotel',
+    label: { ru: 'В отеле / Ресторане / Банкетном зале', en: 'Hotel / Restaurant / Banquet hall' },
+  },
+  {
+    id: 'black_tie',
+    label: { ru: 'Официальный вечер / Black Tie', en: 'Formal evening / Black Tie' },
+  },
+  {
+    id: 'family',
+    label: { ru: 'Небольшое семейное торжество', en: 'Small family celebration' },
+  },
+  {
+    id: 'other',
+    label: { ru: 'Другой вариант', en: 'Other' },
+  },
+  {
+    id: 'undecided',
+    label: { ru: 'Место пока не выбрано', en: 'Venue not chosen yet' },
+  },
+];
+
+/** Derive timeline label from an exact event date so we don't ask twice. */
+export function timelineLabelFromDate(dateStr: string, lang: SupportedLanguage): string {
+  if (!dateStr) return '';
+  const event = new Date(`${dateStr}T12:00:00`);
+  if (Number.isNaN(event.getTime())) return '';
+
+  const now = new Date();
+  now.setHours(12, 0, 0, 0);
+  const days = Math.ceil((event.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+  const months = days / 30.4375;
+
+  let id: string;
+  if (months < 1) id = 'under1m';
+  else if (months < 3) id = '1-2m';
+  else if (months < 6) id = '3-5m';
+  else id = '6m+';
+
+  return TIMELINE_OPTIONS_DATA.find((t) => t.id === id)?.label[lang] ?? '';
+}
 
 export const ATELIER_LOCATIONS_DATA = [
   {
@@ -722,8 +800,10 @@ export const getBudgetTiers = (lang: SupportedLanguage) =>
     id: b.id,
     range: b.range,
     tier: b.tier[lang],
+    prices: b.prices[lang],
     description: b.description[lang],
     includes: b.includes[lang],
+    note: b.note[lang],
   }));
 
 export const getPriorities = (lang: SupportedLanguage) =>
@@ -737,7 +817,12 @@ export const getTimelineOptions = (lang: SupportedLanguage) =>
   TIMELINE_OPTIONS_DATA.map((t) => ({
     id: t.id,
     label: t.label[lang],
-    note: t.note[lang],
+  }));
+
+export const getEventSettings = (lang: SupportedLanguage) =>
+  EVENT_SETTINGS_DATA.map((s) => ({
+    id: s.id,
+    label: s.label[lang],
   }));
 
 export const getAtelierLocations = (lang: SupportedLanguage) =>

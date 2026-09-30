@@ -84,8 +84,15 @@ export function createConsultationFromBody(body: any): Consultation {
     occasion: body.occasion || 'Atelier Consultation',
     date: body.date || '',
     timeline: body.timeline || 'Flexible',
+    settings: Array.isArray(body.settings) ? body.settings : [],
+    settingOther: body.settingOther || '',
+    eventCity: body.eventCity || '',
     budget: body.budget || '',
-    silhouette: body.silhouette || '',
+    silhouette: body.silhouette
+      ? Array.isArray(body.silhouette)
+        ? body.silhouette.join(', ')
+        : body.silhouette
+      : '',
     style: body.style || '',
     colors: body.colors || [],
     measurements: body.measurements || {},
@@ -125,6 +132,13 @@ function formatTelegramConsultationMessage(consultation: Consultation): string {
   const dateStr = consultation.date
     ? (consultation.timeline ? `${consultation.date} (${consultation.timeline})` : consultation.date)
     : (consultation.timeline || 'Flexible');
+
+  const settingsParts = [
+    ...(Array.isArray(consultation.settings) ? consultation.settings : []),
+    consultation.settingOther,
+    consultation.eventCity ? `City/region: ${consultation.eventCity}` : '',
+  ].filter(Boolean);
+  const settingsStr = settingsParts.length > 0 ? settingsParts.join('; ') : '';
 
   const budget = consultation.budget || 'Not specified';
   const silhouette = consultation.silhouette || 'Bespoke';
@@ -170,7 +184,7 @@ function formatTelegramConsultationMessage(consultation: Consultation): string {
 
 Client: ${clientName}
 Occasion: ${occasion}
-Event date: ${dateStr}
+Event date: ${dateStr}${settingsStr ? `\nEvent setting: ${settingsStr}` : ''}
 Budget: ${budget}
 Silhouette: ${silhouette}
 Style: ${style}

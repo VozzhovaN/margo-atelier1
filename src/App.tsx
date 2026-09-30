@@ -47,9 +47,12 @@ const STEP_ORDER: StepKey[] = [
 const INITIAL_DOSSIER: ConsultationDossier = {
   occasion: '',
   date: '',
-  timeline: '3 – 5 Months',
-  budget: '€4,000 – €7,000',
-  silhouette: '',
+  timeline: '',
+  settings: [],
+  settingOther: '',
+  eventCity: '',
+  budget: '',
+  silhouette: [],
   style: '',
   colors: ['Ivory & Warm Milk'],
   measurements: {
@@ -86,7 +89,36 @@ export default function App() {
   const [dossier, setDossier] = useState<ConsultationDossier>(() => {
     try {
       const saved = localStorage.getItem('margo_atelier_dossier');
-      return saved ? JSON.parse(saved) : INITIAL_DOSSIER;
+      if (!saved) return INITIAL_DOSSIER;
+      const parsed = JSON.parse(saved) as Partial<ConsultationDossier>;
+      return {
+        ...INITIAL_DOSSIER,
+        ...parsed,
+        settings: Array.isArray(parsed.settings) ? parsed.settings : [],
+        settingOther: typeof parsed.settingOther === 'string' ? parsed.settingOther : '',
+        eventCity: typeof parsed.eventCity === 'string' ? parsed.eventCity : '',
+        measurements: {
+          ...INITIAL_DOSSIER.measurements,
+          ...(parsed.measurements ?? {}),
+        },
+        contact: {
+          ...INITIAL_DOSSIER.contact,
+          ...(parsed.contact ?? {}),
+        },
+        colors: Array.isArray(parsed.colors) ? parsed.colors : INITIAL_DOSSIER.colors,
+        references: Array.isArray(parsed.references) ? parsed.references : [],
+        priorities: Array.isArray(parsed.priorities) ? parsed.priorities : INITIAL_DOSSIER.priorities,
+        silhouette: Array.isArray(parsed.silhouette)
+          ? parsed.silhouette
+          : typeof parsed.silhouette === 'string' && parsed.silhouette
+            ? [parsed.silhouette]
+            : [],
+        budget:
+          typeof parsed.budget === 'string' &&
+          ['MARGO Signature', 'MARGO Bespoke', 'MARGO Couture'].includes(parsed.budget)
+            ? parsed.budget
+            : '',
+      };
     } catch {
       return INITIAL_DOSSIER;
     }
@@ -158,8 +190,21 @@ export default function App() {
     setCurrentStep('welcome');
   };
 
+  const isWelcomeScreen = currentStep === 'welcome' && !isDashboard;
+  const isDateScreen = currentStep === 'date' && !isDashboard;
+  const isBudgetScreen = currentStep === 'budget' && !isDashboard;
+  const isSilhouetteScreen = currentStep === 'silhouette' && !isDashboard;
+  const hideSiteFooter =
+    isWelcomeScreen || isDateScreen || isBudgetScreen || isSilhouetteScreen;
+
   return (
-    <div className="min-h-screen bg-[#FAF8F5] text-[#1A1816] flex flex-col justify-between selection:bg-[#EAE2D8]">
+    <div
+      className={`bg-[#FAF8F5] text-[#1A1816] flex flex-col selection:bg-[#EAE2D8] ${
+        isWelcomeScreen
+          ? 'h-dvh max-h-dvh overflow-hidden sm:min-h-screen sm:h-auto sm:max-h-none sm:overflow-visible sm:justify-between'
+          : 'min-h-screen justify-between'
+      }`}
+    >
       {/* Top Header */}
       <Header
         currentStep={currentStep}
@@ -176,13 +221,23 @@ export default function App() {
       />
 
       {/* Main Content Area */}
-      <main className="flex-1 w-full flex flex-col items-center justify-start pb-12">
+      <main
+        className={`flex-1 w-full flex flex-col items-center justify-start min-h-0 ${
+          isWelcomeScreen
+            ? 'pb-0 overflow-hidden sm:overflow-visible sm:pb-12'
+            : isDateScreen || isBudgetScreen || isSilhouetteScreen
+              ? 'pt-3 sm:pt-4 pb-0'
+              : 'pt-3 sm:pt-4 pb-12'
+        }`}
+      >
         {/* If Mobile Simulator container is toggled on desktop */}
         <div
           className={`w-full transition-all duration-300 ${
             isMobileSimulator && !isDashboard
               ? 'max-w-[420px] my-4 rounded-[40px] border-[8px] border-[#201D1A] shadow-2xl bg-[#FAF8F5] overflow-hidden min-h-[740px]'
-              : 'max-w-4xl'
+              : isWelcomeScreen
+                ? 'max-w-4xl h-full min-h-0 flex flex-col'
+                : 'max-w-4xl'
           }`}
         >
           {isMobileSimulator && !isDashboard && (
@@ -207,7 +262,7 @@ export default function App() {
                 initial="initial"
                 animate="animate"
                 exit="exit"
-                className="w-full"
+                className={`w-full ${isWelcomeScreen ? 'h-full min-h-0 flex flex-col' : ''}`}
               >
                 {currentStep === 'welcome' && (
                   <WelcomeView onStart={() => setCurrentStep('occasion')} lang={lang} />
@@ -228,8 +283,11 @@ export default function App() {
                   <StepDate
                     date={dossier.date}
                     timeline={dossier.timeline}
-                    onUpdate={({ date, timeline }) =>
-                      setDossier({ ...dossier, date, timeline })
+                    settings={dossier.settings ?? []}
+                    settingOther={dossier.settingOther ?? ''}
+                    eventCity={dossier.eventCity ?? ''}
+                    onUpdate={({ date, timeline, settings, settingOther, eventCity }) =>
+                      setDossier({ ...dossier, date, timeline, settings, settingOther, eventCity })
                     }
                     onNext={goToNextStep}
                     lang={lang}
@@ -338,7 +396,11 @@ export default function App() {
       </main>
 
       {/* Luxury Footer Footnote */}
-      <footer className="w-full border-t border-[#EAE3D9] py-4 px-4 text-center text-[10px] tracking-[0.25em] text-[#9A9085] uppercase bg-[#FAF8F5]/80">
+      <footer
+        className={`w-full border-t border-[#EAE3D9] py-4 px-4 text-center text-[10px] tracking-[0.25em] text-[#9A9085] uppercase bg-[#FAF8F5]/80 ${
+          hideSiteFooter ? 'hidden' : ''
+        }`}
+      >
         <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
           <span>{t.footerSlogan}</span>
           <div className="flex items-center gap-3">

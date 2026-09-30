@@ -14,7 +14,7 @@ import {
   RotateCcw,
 } from 'lucide-react';
 import { ConsultationDossier, AIStyleDirection } from '../types';
-import { CAMPAIGN_ASSETS } from '../data/atelierContent';
+import { CAMPAIGN_ASSETS, getSilhouettes } from '../data/atelierContent';
 import { SupportedLanguage, TRANSLATIONS } from '../data/translations';
 import { staggerContainer, microFadeUp, microFadeUpSubtle } from '../utils/motion';
 
@@ -34,6 +34,12 @@ export const SummaryView: React.FC<SummaryViewProps> = ({
   lang,
 }) => {
   const t = TRANSLATIONS[lang];
+  const silhouetteLabel = (() => {
+    const selected = Array.isArray(dossier.silhouette) ? dossier.silhouette : [];
+    if (selected.length === 0) return lang === 'ru' ? 'Не выбран' : 'Not selected';
+    const map = Object.fromEntries(getSilhouettes(lang).map((s) => [s.id, s.name]));
+    return selected.map((id) => map[id] || id).join(', ');
+  })();
   const [aiDirection, setAiDirection] = useState<AIStyleDirection | null>(
     dossier.aiStyleDirection || null
   );
@@ -59,7 +65,9 @@ export const SummaryView: React.FC<SummaryViewProps> = ({
           date: dossier.date,
           timeline: dossier.timeline,
           budget: dossier.budget,
-          silhouette: dossier.silhouette,
+          silhouette: silhouetteLabel === (lang === 'ru' ? 'Не выбран' : 'Not selected')
+            ? ''
+            : silhouetteLabel,
           style: dossier.style,
           colors: dossier.colors,
           measurements: dossier.measurements,
@@ -115,7 +123,8 @@ export const SummaryView: React.FC<SummaryViewProps> = ({
 Я заполнила консультационное досье [#${dossierId}]:
 • Повод: ${dossier.occasion || 'Индивидуальный заказ'}
 • Дата: ${dossier.date || dossier.timeline || 'В ближайшие месяцы'}
-• Силуэт: ${dossier.silhouette || 'Bespoke'}
+• Формат: ${[...(dossier.settings || []), dossier.settingOther, dossier.eventCity].filter(Boolean).join(', ') || '—'}
+• Силуэт: ${silhouetteLabel}
 • Эстетика: ${dossier.style || 'Тихий люкс'}
 • Бюджетная категория: ${dossier.budget || 'Couture Bespoke'}
 • Имя клиента: ${dossier.contact.fullName}
@@ -127,7 +136,8 @@ export const SummaryView: React.FC<SummaryViewProps> = ({
 I have completed my consultation preparation dossier [#${dossierId}]:
 • Occasion: ${dossier.occasion || 'Atelier Consultation'}
 • Target Date: ${dossier.date || dossier.timeline || 'Upcoming'}
-• Preferred Silhouette: ${dossier.silhouette || 'Bespoke'}
+• Format: ${[...(dossier.settings || []), dossier.settingOther, dossier.eventCity].filter(Boolean).join(', ') || '—'}
+• Preferred Silhouette: ${silhouetteLabel}
 • Style Essence: ${dossier.style || 'Quiet Luxury'}
 • Budget Tier: ${dossier.budget || 'Couture Bespoke'}
 • Client Name: ${dossier.contact.fullName}
@@ -219,7 +229,7 @@ I would like to book my first private consultation appointment.`
               {t.aestheticDirection}
             </span>
             <h2 className="font-serif text-2xl sm:text-3xl font-light tracking-wide leading-tight">
-              {dossier.silhouette || 'Architectural Silhouette'}
+              {silhouetteLabel}
             </h2>
             <p className="text-xs text-[#EAE2D8] font-light mt-0.5">
               {dossier.style || 'Quiet Luxury Minimalist'}

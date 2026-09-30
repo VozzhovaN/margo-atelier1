@@ -4,6 +4,9 @@ export interface Consultation {
   occasion: string;
   date: string;
   timeline: string;
+  settings?: string[];
+  settingOther?: string;
+  eventCity?: string;
   budget: string;
   silhouette: string;
   style: string;
