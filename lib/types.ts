@@ -47,4 +47,6 @@ export interface Consultation {
   consentAcceptedAt?: string;
   consentVersion?: string;
   status: 'new' | 'contacted' | 'scheduled' | 'fitting' | 'completed';
+  archived?: boolean;
+  archivedAt?: string;
 }

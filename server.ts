@@ -7,6 +7,8 @@ import {
   loadConsultations,
   submitConsultation,
   updateConsultationStatus,
+  archiveConsultation,
+  permanentlyDeleteConsultation,
 } from './lib/consultations';
 import {
   createAdminToken,
@@ -99,12 +101,36 @@ app.get('/api/consultations', (req, res) => {
 app.patch('/api/consultations/:id', (req, res) => {
   if (!denyUnlessAdmin(req, res)) return;
   const { id } = req.params;
+  if (req.body?.archive === true) {
+    const archived = archiveConsultation(id);
+    if (!archived) {
+      return res.status(404).json({ error: 'Consultation not found' });
+    }
+    return res.json({ success: true, consultation: archived });
+  }
   const { status } = req.body as { status?: Consultation['status'] };
   const item = updateConsultationStatus(id, status as Consultation['status']);
   if (!item) {
     return res.status(404).json({ error: 'Consultation not found' });
   }
   return res.json({ success: true, consultation: item });
+});
+
+app.delete('/api/consultations/:id', (req, res) => {
+  if (!denyUnlessAdmin(req, res)) return;
+  const { id } = req.params;
+  const password = String(req.body?.password || '');
+  if (!verifyAdminPassword(password)) {
+    return res.status(401).json({ error: 'Invalid password' });
+  }
+  const result = permanentlyDeleteConsultation(id);
+  if (result === 'not_found') {
+    return res.status(404).json({ error: 'Consultation not found' });
+  }
+  if (result === 'not_archived') {
+    return res.status(400).json({ error: 'Archive the request before permanent deletion' });
+  }
+  return res.json({ success: true });
 });
 
 app.use('/api', (_req, res) => {

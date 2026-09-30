@@ -10,6 +10,7 @@ import {
   RefreshCw,
   Search,
   Lock,
+  Trash2,
 } from 'lucide-react';
 import { ConsultationDossier } from '../types';
 import { SupportedLanguage, TRANSLATIONS } from '../data/translations';
@@ -43,9 +44,13 @@ export const AtelierDashboard: React.FC<AtelierDashboardProps> = ({ onBackToApp,
 
   const [consultations, setConsultations] = useState<ConsultationDossier[]>([]);
   const [loading, setLoading] = useState(false);
-  const [activeFilter, setActiveFilter] = useState<'all' | 'new' | 'scheduled' | 'fitting'>('all');
+  const [activeFilter, setActiveFilter] = useState<'all' | 'new' | 'scheduled' | 'fitting' | 'archive'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<ConsultationDossier | null>(null);
+  const [purgePassword, setPurgePassword] = useState('');
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [acting, setActing] = useState(false);
 
   const fetchConsultations = async (authToken = token) => {
     if (!authToken) return;
@@ -87,11 +92,17 @@ export const AtelierDashboard: React.FC<AtelierDashboardProps> = ({ onBackToApp,
       const res = await fetch('/api/admin/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password }),
+        body: JSON.stringify({ password: password.trim() }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok || !data.token) {
-        setLoginError(data.error || t.adminLoginError);
+        if (res.status === 503) {
+          setLoginError(t.adminLoginErrorNotConfigured);
+        } else if (res.status === 401) {
+          setLoginError(t.adminLoginErrorUnauthorized);
+        } else {
+          setLoginError(typeof data.error === 'string' ? data.error : t.adminLoginError);
+        }
         return;
       }
       try {
@@ -134,8 +145,75 @@ export const AtelierDashboard: React.FC<AtelierDashboardProps> = ({ onBackToApp,
     }
   };
 
+  const closeDeleteDialog = () => {
+    setPendingDelete(null);
+    setPurgePassword('');
+    setActionError(null);
+    setActing(false);
+  };
+
+  const confirmArchive = async () => {
+    if (!token || !pendingDelete?.id || pendingDelete.archived) return;
+    setActing(true);
+    setActionError(null);
+    try {
+      const res = await fetch(`/api/consultations/${pendingDelete.id}`, {
+        method: 'PATCH',
+        headers: authHeaders(token),
+        body: JSON.stringify({ archive: true }),
+      });
+      if (!res.ok) {
+        setActionError(t.dashActionError);
+        return;
+      }
+      const archivedAt = new Date().toISOString();
+      setConsultations((prev) =>
+        prev.map((c) => (c.id === pendingDelete.id ? { ...c, archived: true, archivedAt } : c))
+      );
+      closeDeleteDialog();
+    } catch {
+      setActionError(t.dashActionError);
+    } finally {
+      setActing(false);
+    }
+  };
+
+  const confirmPurge = async () => {
+    if (!token || !pendingDelete?.id || !pendingDelete.archived) return;
+    setActing(true);
+    setActionError(null);
+    try {
+      const res = await fetch(`/api/consultations/${pendingDelete.id}`, {
+        method: 'DELETE',
+        headers: authHeaders(token),
+        body: JSON.stringify({ password: purgePassword.trim() }),
+      });
+      if (res.status === 401) {
+        setActionError(t.adminLoginErrorUnauthorized);
+        return;
+      }
+      if (!res.ok) {
+        setActionError(t.dashActionError);
+        return;
+      }
+      setConsultations((prev) => prev.filter((c) => c.id !== pendingDelete.id));
+      closeDeleteDialog();
+    } catch {
+      setActionError(t.dashActionError);
+    } finally {
+      setActing(false);
+    }
+  };
+
+  const activeConsultations = consultations.filter((c) => !c.archived);
+
   const filtered = consultations.filter((c) => {
-    if (activeFilter !== 'all' && c.status !== activeFilter) return false;
+    const archived = Boolean(c.archived);
+    if (activeFilter === 'archive') {
+      if (!archived) return false;
+    } else if (archived || (activeFilter !== 'all' && c.status !== activeFilter)) {
+      return false;
+    }
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       const matchName = c.contact?.fullName?.toLowerCase().includes(q);
@@ -155,7 +233,15 @@ export const AtelierDashboard: React.FC<AtelierDashboardProps> = ({ onBackToApp,
             <span className="text-[10px] uppercase tracking-[0.2em] text-[#7D7267]">{t.dashConsoleBadge}</span>
           </div>
           <h1 className="font-serif text-2xl font-light text-[#1A1816] mb-1">{t.adminLoginTitle}</h1>
-          <p className="text-xs text-[#706459] font-light mb-5">{t.adminLoginHint}</p>
+          <p className="text-xs text-[#706459] font-light mb-2">{t.adminLoginHint}</p>
+          <p className="text-xs text-[#544B43] font-medium mb-5 leading-relaxed">{t.adminLoginStaffNote}</p>
+          <button
+            type="button"
+            onClick={onBackToApp}
+            className="w-full mb-5 py-3 rounded-full border border-[#1A1816] text-[#1A1816] text-xs uppercase tracking-[0.14em] hover:bg-[#1A1816] hover:text-[#FAF8F5] transition-colors"
+          >
+            {t.dashBackBtn}
+          </button>
           <form onSubmit={handleLogin} className="space-y-3">
             <label className="block text-[11px] uppercase tracking-[0.15em] text-[#544B43]">
               {t.adminPasswordLabel}
@@ -164,26 +250,19 @@ export const AtelierDashboard: React.FC<AtelierDashboardProps> = ({ onBackToApp,
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder={t.adminPasswordPlaceholder}
+                autoComplete="current-password"
                 className="mt-1.5 w-full px-3.5 py-2.5 rounded-xl bg-[#F6F1EA] border border-[#D9D1C5] text-sm text-[#1A1816] focus:outline-none focus:ring-1 focus:ring-[#1A1816]"
-                autoFocus
               />
             </label>
             {loginError && <p className="text-xs text-[#A83D3D]">{loginError}</p>}
             <button
               type="submit"
-              disabled={loggingIn || !password}
+              disabled={loggingIn || !password.trim()}
               className="w-full py-3 rounded-full bg-[#1A1816] text-[#FAF8F5] text-xs uppercase tracking-[0.18em] disabled:bg-[#E5DDD2] disabled:text-[#9E9488]"
             >
-              {t.adminLoginBtn}
+              {loggingIn ? '…' : t.adminLoginBtn}
             </button>
           </form>
-          <button
-            type="button"
-            onClick={onBackToApp}
-            className="w-full mt-3 py-2.5 text-xs uppercase tracking-[0.14em] text-[#867B71] hover:text-[#1A1816]"
-          >
-            {t.dashBackBtn}
-          </button>
         </div>
       </div>
     );
@@ -234,18 +313,18 @@ export const AtelierDashboard: React.FC<AtelierDashboardProps> = ({ onBackToApp,
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 my-6">
         <div className="p-3.5 rounded-2xl bg-[#FAF8F5] border border-[#E8E1D6]">
           <span className="text-[10px] uppercase tracking-wider text-[#8A7D71] block font-medium">{t.dashTotal}</span>
-          <div className="font-serif text-2xl font-light text-[#1A1816] mt-1">{consultations.length}</div>
+          <div className="font-serif text-2xl font-light text-[#1A1816] mt-1">{activeConsultations.length}</div>
         </div>
         <div className="p-3.5 rounded-2xl bg-[#FAF8F5] border border-[#E8E1D6]">
           <span className="text-[10px] uppercase tracking-wider text-[#8A7D71] block font-medium">{t.dashNew}</span>
           <div className="font-serif text-2xl font-light text-[#A86430] mt-1">
-            {consultations.filter((c) => c.status === 'new').length}
+            {activeConsultations.filter((c) => c.status === 'new').length}
           </div>
         </div>
         <div className="p-3.5 rounded-2xl bg-[#FAF8F5] border border-[#E8E1D6]">
           <span className="text-[10px] uppercase tracking-wider text-[#8A7D71] block font-medium">{t.dashScheduled}</span>
           <div className="font-serif text-2xl font-light text-[#2E7A4C] mt-1">
-            {consultations.filter((c) => c.status === 'scheduled').length}
+            {activeConsultations.filter((c) => c.status === 'scheduled').length}
           </div>
         </div>
         <div className="p-3.5 rounded-2xl bg-[#FAF8F5] border border-[#E8E1D6]">
@@ -269,7 +348,7 @@ export const AtelierDashboard: React.FC<AtelierDashboardProps> = ({ onBackToApp,
           />
         </div>
         <div className="flex items-center gap-1.5 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0">
-          {(['all', 'new', 'scheduled', 'fitting'] as const).map((tab) => {
+          {(['all', 'new', 'scheduled', 'fitting', 'archive'] as const).map((tab) => {
             const label =
               tab === 'all'
                 ? t.dashFilterAll
@@ -277,7 +356,9 @@ export const AtelierDashboard: React.FC<AtelierDashboardProps> = ({ onBackToApp,
                   ? t.dashFilterNew
                   : tab === 'scheduled'
                     ? t.dashFilterScheduled
-                    : t.dashFilterFitting;
+                    : tab === 'fitting'
+                      ? t.dashFilterFitting
+                      : t.dashFilterArchive;
             return (
               <button
                 key={tab}
@@ -352,15 +433,30 @@ export const AtelierDashboard: React.FC<AtelierDashboardProps> = ({ onBackToApp,
                   <div className="flex items-center justify-between sm:justify-end gap-3 pt-2 sm:pt-0 border-t sm:border-t-0 border-[#EFE9E0]">
                     <span
                       className={`text-[10px] uppercase tracking-wider px-2.5 py-1 rounded-full font-medium ${
-                        item.status === 'new'
+                        item.archived
+                          ? 'bg-[#EFE8DF] text-[#61564C]'
+                          : item.status === 'new'
                           ? 'bg-[#FBEEDC] text-[#8C5319] border border-[#EACCA4]'
                           : item.status === 'scheduled'
                             ? 'bg-[#E3F2E7] text-[#1E6B39] border border-[#BEE0C8]'
                             : 'bg-[#EFE8DF] text-[#61564C]'
                       }`}
                     >
-                      {item.status || 'new'}
+                      {item.archived ? t.dashFilterArchive : item.status || 'new'}
                     </span>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setActionError(null);
+                        setPurgePassword('');
+                        setPendingDelete(item);
+                      }}
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-[#E4C8C8] text-[10px] uppercase tracking-wider text-[#A83D3D] hover:bg-[#F8EAEA]"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                      {item.archived ? t.dashPurgeBtn : t.dashArchiveBtn}
+                    </button>
                     {isExpanded ? <ChevronUp className="w-4 h-4 text-[#8C7E72]" /> : <ChevronDown className="w-4 h-4 text-[#8C7E72]" />}
                   </div>
                 </div>
@@ -530,6 +626,57 @@ export const AtelierDashboard: React.FC<AtelierDashboardProps> = ({ onBackToApp,
           })
         )}
       </div>
+
+      {pendingDelete && (
+        <div
+          className="fixed inset-0 z-[80] flex items-end sm:items-center justify-center bg-[#1A1816]/45 backdrop-blur-[2px] p-4"
+          role="dialog"
+          aria-modal="true"
+        >
+          <div className="w-full max-w-md rounded-2xl bg-[#FAF8F5] border border-[#E8E1D6] shadow-2xl p-6">
+            <h2 className="font-serif text-2xl font-light text-[#1A1816] mb-2">
+              {pendingDelete.archived ? t.dashPurgeTitle : t.dashArchiveTitle}
+            </h2>
+            <p className="text-xs text-[#706459] font-light leading-relaxed mb-1">
+              {pendingDelete.contact?.fullName || '—'} · {pendingDelete.id}
+            </p>
+            <p className="text-sm text-[#544B43] font-light leading-relaxed mb-4">
+              {pendingDelete.archived ? t.dashPurgeText : t.dashArchiveText}
+            </p>
+            {pendingDelete.archived && (
+              <label className="block text-[11px] uppercase tracking-[0.15em] text-[#544B43] mb-3">
+                {t.dashPurgePassword}
+                <input
+                  type="password"
+                  value={purgePassword}
+                  onChange={(e) => setPurgePassword(e.target.value)}
+                  autoComplete="current-password"
+                  className="mt-1.5 w-full px-3.5 py-2.5 rounded-xl bg-[#F6F1EA] border border-[#D9D1C5] text-sm text-[#1A1816] normal-case tracking-normal focus:outline-none focus:ring-1 focus:ring-[#1A1816]"
+                />
+              </label>
+            )}
+            {actionError && <p className="text-xs text-[#A83D3D] mb-3">{actionError}</p>}
+            <div className="flex flex-col sm:flex-row gap-2">
+              <button
+                type="button"
+                onClick={closeDeleteDialog}
+                disabled={acting}
+                className="flex-1 py-3 rounded-full border border-[#D9D1C5] text-xs uppercase tracking-[0.14em] text-[#54493F]"
+              >
+                {t.dashCancel}
+              </button>
+              <button
+                type="button"
+                disabled={acting || (Boolean(pendingDelete.archived) && !purgePassword.trim())}
+                onClick={pendingDelete.archived ? confirmPurge : confirmArchive}
+                className="flex-1 py-3 rounded-full bg-[#A83D3D] text-[#FAF8F5] text-xs uppercase tracking-[0.14em] disabled:bg-[#E5DDD2] disabled:text-[#9E9488]"
+              >
+                {pendingDelete.archived ? t.dashPurgeConfirm : t.dashArchiveConfirm}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

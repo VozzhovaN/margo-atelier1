@@ -100,6 +100,8 @@ export interface ConsultationDossier {
   consentAcceptedAt?: string;
   consentVersion?: string;
   status?: 'new' | 'contacted' | 'scheduled' | 'fitting' | 'completed';
+  archived?: boolean;
+  archivedAt?: string;
 }
 
 export type StepKey =

@@ -386,3 +386,22 @@ export function updateConsultationStatus(id: string, status: Consultation['statu
   saveConsultations(list);
   return item;
 }
+
+export function archiveConsultation(id: string) {
+  const list = loadConsultations();
+  const item = list.find((c) => c.id === id);
+  if (!item) return null;
+  item.archived = true;
+  item.archivedAt = new Date().toISOString();
+  saveConsultations(list);
+  return item;
+}
+
+export function permanentlyDeleteConsultation(id: string): 'not_found' | 'not_archived' | 'deleted' {
+  const list = loadConsultations();
+  const item = list.find((c) => c.id === id);
+  if (!item) return 'not_found';
+  if (!item.archived) return 'not_archived';
+  saveConsultations(list.filter((c) => c.id !== id));
+  return 'deleted';
+}

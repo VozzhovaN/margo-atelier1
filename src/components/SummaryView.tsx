@@ -1,19 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import {
   Sparkles,
   Send,
   MessageCircle,
-  Calendar,
   CheckCircle2,
   Share2,
-  ChevronRight,
-  Layers,
-  Scissors,
   Check,
-  RotateCcw,
 } from 'lucide-react';
-import { ConsultationDossier, AIStyleDirection } from '../types';
+import { ConsultationDossier } from '../types';
 import { CAMPAIGN_ASSETS, getColours, getFitPreferences, getSilhouettes, getStyles } from '../data/atelierContent';
 import { SupportedLanguage, TRANSLATIONS } from '../data/translations';
 import { staggerContainer, microFadeUp, microFadeUpSubtle } from '../utils/motion';
@@ -21,7 +16,6 @@ import { staggerContainer, microFadeUp, microFadeUpSubtle } from '../utils/motio
 interface SummaryViewProps {
   dossier: ConsultationDossier;
   onEditStep: (step: any) => void;
-  onViewDashboard: () => void;
   onReset: () => void;
   lang: SupportedLanguage;
 }
@@ -29,7 +23,6 @@ interface SummaryViewProps {
 export const SummaryView: React.FC<SummaryViewProps> = ({
   dossier,
   onEditStep,
-  onViewDashboard,
   onReset,
   lang,
 }) => {
@@ -72,54 +65,11 @@ export const SummaryView: React.FC<SummaryViewProps> = ({
     }
     return dossier.measurements.clothingSize;
   })();
-  const [aiDirection, setAiDirection] = useState<AIStyleDirection | null>(
-    dossier.aiStyleDirection || null
-  );
-  const [loadingAI, setLoadingAI] = useState<boolean>(!dossier.aiStyleDirection);
   const [submissionSuccess, setSubmissionSuccess] = useState<boolean>(false);
+  const [showThankYou, setShowThankYou] = useState<boolean>(false);
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [dossierId, setDossierId] = useState<string>(dossier.id || 'MARGO-8492');
   const [copiedLink, setCopiedLink] = useState(false);
-
-  // Generate Gemini AI Style Direction on mount or when language changes if not generated
-  useEffect(() => {
-    generateStyleDirection();
-  }, [lang]);
-
-  const generateStyleDirection = async () => {
-    setLoadingAI(true);
-    try {
-      const res = await fetch('/api/gemini/style-direction', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          occasion: dossier.occasion,
-          date: dossier.date,
-          timeline: dossier.timeline,
-          budget: dossier.budget,
-          silhouette: silhouetteLabel === (lang === 'ru' ? 'Не выбран' : 'Not selected')
-            ? ''
-            : silhouetteLabel,
-          style: styleLabel === (lang === 'ru' ? 'Не выбран' : 'Not selected') ? '' : styleLabel,
-          colors: colourLabel === (lang === 'ru' ? 'Не выбран' : 'Not selected') ? [] : colourItems.map((c) => c.name),
-          customColorNote: dossier.customColorNote,
-          measurements: dossier.measurements,
-          priorities: dossier.priorities,
-          referenceNotes: dossier.referenceNotes,
-          lang,
-        }),
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        setAiDirection(data);
-      }
-    } catch (err) {
-      console.error('Error fetching style direction:', err);
-    } finally {
-      setLoadingAI(false);
-    }
-  };
 
   // Submit Consultation to Backend & Trigger Telegram Bot notification
   const handleSendToAtelier = async () => {
@@ -142,7 +92,6 @@ export const SummaryView: React.FC<SummaryViewProps> = ({
             colourLabel === (lang === 'ru' ? 'Не выбран' : 'Not selected')
               ? []
               : colourItems.map((c) => c.name),
-          aiStyleDirection: aiDirection,
         }),
       });
 
@@ -152,6 +101,7 @@ export const SummaryView: React.FC<SummaryViewProps> = ({
           setDossierId(data.consultation.id);
         }
         setSubmissionSuccess(true);
+        setShowThankYou(true);
       }
     } catch (err) {
       console.error('Submission error:', err);
@@ -233,19 +183,33 @@ I would like to book my first private consultation appointment.`
         </p>
       </motion.div>
 
-      {/* Success Banner if submitted */}
-      {submissionSuccess && (
-        <motion.div variants={microFadeUp} className="mb-6 p-4 rounded-2xl bg-[#F0F7F2] border border-[#C8E1CE] text-[#205A32] flex items-start gap-3">
-          <CheckCircle2 className="w-5 h-5 text-[#2E8B4A] shrink-0 mt-0.5" />
-          <div className="text-xs sm:text-sm">
-            <div className="font-semibold uppercase tracking-wider text-[11px]">
-              {t.summaryTransmittedBannerTitle}
+      {showThankYou && (
+        <div
+          className="fixed inset-0 z-[80] flex items-end sm:items-center justify-center bg-[#1A1816]/45 backdrop-blur-[2px] p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="thank-you-message"
+        >
+          <div className="w-full max-w-md rounded-2xl bg-[#FAF8F5] border border-[#E8E1D6] shadow-2xl p-6 sm:p-7 text-center">
+            <div className="mx-auto mb-4 w-10 h-10 rounded-full bg-[#F0F7F2] border border-[#C8E1CE] flex items-center justify-center">
+              <CheckCircle2 className="w-5 h-5 text-[#2E8B4A]" />
             </div>
-            <p className="mt-0.5 text-[#2C6E3E] font-light">
-              {t.summaryTransmittedBannerText}
+            <p className="text-[10px] uppercase tracking-[0.22em] text-[#7D7267] mb-1">
+              {t.thankYouOrderLabel}
             </p>
+            <p className="font-serif text-2xl text-[#1A1816] tracking-wide mb-4">{dossierId}</p>
+            <p id="thank-you-message" className="text-sm text-[#544B43] font-light leading-relaxed mb-6">
+              {t.thankYouMessage}
+            </p>
+            <button
+              type="button"
+              onClick={() => setShowThankYou(false)}
+              className="w-full py-3 rounded-full bg-[#1A1816] text-[#FAF8F5] text-xs uppercase tracking-[0.18em]"
+            >
+              {t.thankYouClose}
+            </button>
           </div>
-        </motion.div>
+        </div>
       )}
 
       {/* Primary Hero Moodboard Card */}
@@ -386,117 +350,6 @@ I would like to book my first private consultation appointment.`
         </div>
       </motion.div>
 
-      {/* GEMINI AI STYLE DIRECTION */}
-      <motion.div variants={microFadeUp} className="relative rounded-3xl p-6 sm:p-7 bg-[#1A1816] text-[#FAF8F5] shadow-2xl mb-8 border border-[#2D2823]">
-        {/* Subtle Luxury Pattern Accent */}
-        <div className="flex items-center justify-between border-b border-white/10 pb-4 mb-5">
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-full bg-[#352F2B] flex items-center justify-center text-[#D8CEBF]">
-              <Sparkles className="w-4 h-4" />
-            </div>
-            <div>
-              <span className="text-[9px] tracking-[0.3em] uppercase text-[#B8AA99] block font-medium">
-                {t.aiGeminiBadge}
-              </span>
-              <span className="font-serif text-sm tracking-widest uppercase text-[#FAF8F5]">
-                {t.aiDirectionTitle}
-              </span>
-            </div>
-          </div>
-
-          <button
-            type="button"
-            onClick={generateStyleDirection}
-            disabled={loadingAI}
-            className="text-[10px] tracking-widest uppercase text-[#B8AA99] hover:text-[#FAF8F5] transition-colors flex items-center gap-1 cursor-pointer"
-          >
-            <RotateCcw className={`w-3 h-3 ${loadingAI ? 'animate-spin' : ''}`} />
-            {t.aiRegenerate}
-          </button>
-        </div>
-
-        {loadingAI ? (
-          <div className="py-10 text-center space-y-3">
-            <div className="w-8 h-8 rounded-full border-2 border-[#D8CEBF] border-t-transparent animate-spin mx-auto" />
-            <p className="font-serif text-lg font-light text-[#EAE2D8] italic">
-              {t.aiLoadingTitle}
-            </p>
-            <p className="text-[11px] text-[#A89886] tracking-wider uppercase">
-              {t.aiLoadingSub}
-            </p>
-          </div>
-        ) : aiDirection ? (
-          <div className="space-y-5">
-            {/* Headline */}
-            <div>
-              <span className="text-[9px] uppercase tracking-[0.3em] text-[#A89886] block mb-1">
-                {t.aiAestheticVision}
-              </span>
-              <h3 className="font-serif text-2xl sm:text-3xl font-light text-[#FAF8F5] tracking-wide leading-snug italic">
-                “{aiDirection.headline}”
-              </h3>
-            </div>
-
-            {/* Concept */}
-            <p className="text-xs sm:text-sm text-[#D8CEBF] font-light leading-relaxed">
-              {aiDirection.concept}
-            </p>
-
-            {/* Fabrics & Architectural details in 2 columns */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-3 border-t border-white/10">
-              {/* Fabrics */}
-              <div>
-                <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-[#B8AA99] block mb-2 flex items-center gap-1.5">
-                  <Layers className="w-3.5 h-3.5 text-[#D8CEBF]" />
-                  {t.aiRecommendedFabrics}
-                </span>
-                <ul className="space-y-1.5 text-xs text-[#EAE2D8] font-light">
-                  {aiDirection.recommendedFabrics?.map((fab, i) => (
-                    <li key={i} className="flex items-start gap-1.5">
-                      <span className="w-1 h-1 rounded-full bg-[#D8CEBF] mt-1.5 shrink-0" />
-                      <span>{fab}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              {/* Architectural Details */}
-              <div>
-                <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-[#B8AA99] block mb-2 flex items-center gap-1.5">
-                  <Scissors className="w-3.5 h-3.5 text-[#D8CEBF]" />
-                  {t.aiArchitecturalDetails}
-                </span>
-                <ul className="space-y-1.5 text-xs text-[#EAE2D8] font-light">
-                  {aiDirection.architecturalDetails?.map((det, i) => (
-                    <li key={i} className="flex items-start gap-1.5">
-                      <span className="w-1 h-1 rounded-full bg-[#D8CEBF] mt-1.5 shrink-0" />
-                      <span>{det}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-
-            {/* Consultation Focus */}
-            {aiDirection.consultationFocus && (
-              <div className="pt-3 border-t border-white/10">
-                <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-[#B8AA99] block mb-2">
-                  {t.aiConsultationFocus}
-                </span>
-                <div className="space-y-1 text-xs text-[#D8CEBF] font-light">
-                  {aiDirection.consultationFocus.map((foc, i) => (
-                    <div key={i} className="flex items-start gap-2">
-                      <span className="text-[10px] font-mono text-[#A89886]">0{i + 1}.</span>
-                      <span>{foc}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        ) : null}
-      </motion.div>
-
       {/* PRIMARY CTA ACTIONS */}
       <motion.div variants={microFadeUp} className="space-y-3 mb-8">
         {/* Book / WhatsApp Atelier Button */}
@@ -539,29 +392,15 @@ I would like to book my first private consultation appointment.`
           )}
         </button>
 
-        {/* Secondary Links: Share & Atelier Dashboard */}
-        <div className="grid grid-cols-2 gap-2.5 pt-2">
-          <button
-            id="share-dossier-btn"
-            type="button"
-            onClick={handleShare}
-            className="py-2.5 px-4 rounded-xl bg-[#FAF8F5] border border-[#D9D1C5] text-xs text-[#54493F] hover:bg-[#F2EDE5] transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
-          >
-            <Share2 className="w-3.5 h-3.5" />
-            <span>{copiedLink ? t.btnCopied : t.btnShare}</span>
-          </button>
-
-          <button
-            id="view-in-dashboard-btn"
-            type="button"
-            onClick={onViewDashboard}
-            className="py-2.5 px-4 rounded-xl bg-[#FAF8F5] border border-[#D9D1C5] text-xs text-[#54493F] hover:bg-[#F2EDE5] transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
-          >
-            <Calendar className="w-3.5 h-3.5" />
-            <span>{t.btnDashboard}</span>
-            <ChevronRight className="w-3 h-3" />
-          </button>
-        </div>
+        <button
+          id="share-dossier-btn"
+          type="button"
+          onClick={handleShare}
+          className="w-full py-2.5 px-4 rounded-xl bg-[#FAF8F5] border border-[#D9D1C5] text-xs text-[#54493F] hover:bg-[#F2EDE5] transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+        >
+          <Share2 className="w-3.5 h-3.5" />
+          <span>{copiedLink ? t.btnCopied : t.btnShare}</span>
+        </button>
       </motion.div>
 
       {/* Edit Options / Restart */}

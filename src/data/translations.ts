@@ -26,10 +26,13 @@ export interface TranslationDict {
   consentCancelBtn: string;
   adminLoginTitle: string;
   adminLoginHint: string;
+  adminLoginStaffNote: string;
   adminPasswordLabel: string;
   adminPasswordPlaceholder: string;
   adminLoginBtn: string;
   adminLoginError: string;
+  adminLoginErrorUnauthorized: string;
+  adminLoginErrorNotConfigured: string;
   adminLogoutBtn: string;
 
   // Header
@@ -212,6 +215,9 @@ export interface TranslationDict {
   btnSendTelegram: string;
   btnSending: string;
   btnSent: string;
+  thankYouOrderLabel: string;
+  thankYouMessage: string;
+  thankYouClose: string;
   btnShare: string;
   btnCopied: string;
   btnDashboard: string;
@@ -233,6 +239,18 @@ export interface TranslationDict {
   dashFilterNew: string;
   dashFilterScheduled: string;
   dashFilterFitting: string;
+  dashFilterArchive: string;
+  dashArchiveBtn: string;
+  dashArchiveTitle: string;
+  dashArchiveText: string;
+  dashArchiveConfirm: string;
+  dashPurgeBtn: string;
+  dashPurgeTitle: string;
+  dashPurgeText: string;
+  dashPurgePassword: string;
+  dashPurgeConfirm: string;
+  dashCancel: string;
+  dashActionError: string;
   statusNew: string;
   statusContacted: string;
   statusScheduled: string;
@@ -284,15 +302,18 @@ export const TRANSLATIONS: Record<SupportedLanguage, TranslationDict> = {
     consentAcceptBtn: 'Принять и продолжить',
     consentCancelBtn: 'Отмена',
     adminLoginTitle: 'Вход в консоль ателье',
-    adminLoginHint: 'Введите пароль администратора для просмотра анкет.',
+    adminLoginHint: 'Это раздел только для сотрудников. Пароль нужен, чтобы смотреть анкеты клиентов.',
+    adminLoginStaffNote: 'Чтобы пройти опрос как клиент, пароль не нужен — нажмите «К анкете» ниже.',
     adminPasswordLabel: 'Пароль',
     adminPasswordPlaceholder: 'Пароль доступа',
     adminLoginBtn: 'Войти',
     adminLoginError: 'Неверный пароль или доступ недоступен.',
+    adminLoginErrorUnauthorized: 'Неверный пароль. Проверьте .env → ADMIN_PASSWORD.',
+    adminLoginErrorNotConfigured: 'Пароль админа не настроен. Добавьте ADMIN_PASSWORD в файл .env и перезапустите сервер.',
     adminLogoutBtn: 'Выйти',
 
     atelierDeskBtn: 'Консоль Ателье',
-    clientAppBtn: 'Досье Клиента',
+    clientAppBtn: 'К анкете',
     stepIndicator: (current, total) => `Шаг ${String(current).padStart(2, '0')} из ${String(total).padStart(2, '0')}`,
     headerSub: 'Консультация',
 
@@ -446,8 +467,8 @@ export const TRANSLATIONS: Record<SupportedLanguage, TranslationDict> = {
     summaryTitle: 'Ваше Консультационное',
     summaryTitleItalic: 'Предложение',
     summaryPreparedFor: (name, loc) => `Подготовлено для: ${name || 'Клиент'} · ${loc}`,
-    summaryTransmittedBannerTitle: 'Досье передано в Telegram-систему Ателье',
-    summaryTransmittedBannerText: 'Данные вашей консультации синхронизированы. Главный кутюрье получил ваши мерки, палитру и визуальные референсы.',
+    summaryTransmittedBannerTitle: 'Досье отправлено',
+    summaryTransmittedBannerText: 'Благодарим за обращение в MARGO Bridal & Special Occasion. В ближайшее время с Вами свяжется наш администратор.',
     aestheticDirection: 'Эстетическое Направление',
     specTimeline: 'Сроки',
     specProportions: 'Размер',
@@ -468,9 +489,13 @@ export const TRANSLATIONS: Record<SupportedLanguage, TranslationDict> = {
     aiConsultationFocus: 'Фокус Первой Консультации в Ателье',
 
     btnBookWhatsapp: 'Записаться на консультацию',
-    btnSendTelegram: 'Отправить досье в Ателье через Telegram',
+    btnSendTelegram: 'Отправить досье в Ателье',
     btnSending: 'Отправка в Ателье...',
-    btnSent: 'Досье отправлено в Telegram-бот',
+    btnSent: 'Досье отправлено',
+    thankYouOrderLabel: 'Номер заказа',
+    thankYouMessage:
+      'Благодарим за обращение в MARGO Bridal & Special Occasion. В ближайшее время с Вами свяжется наш администратор.',
+    thankYouClose: 'Закрыть',
     btnShare: 'Поделиться предложением',
     btnCopied: 'Ссылка скопирована',
     btnDashboard: 'Консоль Ателье',
@@ -478,7 +503,7 @@ export const TRANSLATIONS: Record<SupportedLanguage, TranslationDict> = {
 
     dashConsoleBadge: 'Консоль Управления Ателье',
     dashTitle: 'Досье Консультаций',
-    dashBackBtn: 'Вернуться в приложение',
+    dashBackBtn: 'К анкете — без пароля',
     dashTotal: 'Всего Досье',
     dashNew: 'Новые Заявки',
     dashScheduled: 'Назначены Примерки',
@@ -491,6 +516,18 @@ export const TRANSLATIONS: Record<SupportedLanguage, TranslationDict> = {
     dashFilterNew: 'Новые',
     dashFilterScheduled: 'Назначенные',
     dashFilterFitting: 'Примерки',
+    dashFilterArchive: 'Архив',
+    dashArchiveBtn: 'Удалить',
+    dashArchiveTitle: 'Удалить заявку?',
+    dashArchiveText: 'Заявка будет перемещена в архив. Из архива её можно удалить безвозвратно.',
+    dashArchiveConfirm: 'В архив',
+    dashPurgeBtn: 'Удалить безвозвратно',
+    dashPurgeTitle: 'Удалить безвозвратно?',
+    dashPurgeText: 'Заявка будет удалена из архива без возможности восстановления. Введите пароль администратора.',
+    dashPurgePassword: 'Пароль',
+    dashPurgeConfirm: 'Удалить навсегда',
+    dashCancel: 'Отмена',
+    dashActionError: 'Не удалось выполнить действие.',
     statusNew: 'Новое обращение',
     statusContacted: 'Связались',
     statusScheduled: 'Примерка назначена',
@@ -539,15 +576,18 @@ export const TRANSLATIONS: Record<SupportedLanguage, TranslationDict> = {
     consentAcceptBtn: 'Accept and continue',
     consentCancelBtn: 'Cancel',
     adminLoginTitle: 'Atelier console login',
-    adminLoginHint: 'Enter the administrator password to view dossiers.',
+    adminLoginHint: 'Staff only. Password is required to view client dossiers.',
+    adminLoginStaffNote: 'To fill the questionnaire as a client, no password is needed — tap “Back to questionnaire” below.',
     adminPasswordLabel: 'Password',
     adminPasswordPlaceholder: 'Access password',
     adminLoginBtn: 'Sign in',
     adminLoginError: 'Invalid password or access unavailable.',
+    adminLoginErrorUnauthorized: 'Wrong password. Check .env → ADMIN_PASSWORD.',
+    adminLoginErrorNotConfigured: 'Admin password is not configured. Set ADMIN_PASSWORD in .env and restart the server.',
     adminLogoutBtn: 'Sign out',
 
     atelierDeskBtn: 'Atelier Desk',
-    clientAppBtn: 'Client App',
+    clientAppBtn: 'Questionnaire',
     stepIndicator: (current, total) => `Step ${String(current).padStart(2, '0')} of ${String(total).padStart(2, '0')}`,
     headerSub: 'Consultation',
 
@@ -701,8 +741,8 @@ export const TRANSLATIONS: Record<SupportedLanguage, TranslationDict> = {
     summaryTitle: 'Your Consultation',
     summaryTitleItalic: 'Summary',
     summaryPreparedFor: (name, loc) => `Prepared for ${name || 'Client'} · ${loc}`,
-    summaryTransmittedBannerTitle: 'Dossier Transmitted to Atelier Team',
-    summaryTransmittedBannerText: 'Your consultation file has been synchronized via Telegram Bot. Our Head Couturier has received your measurements, palette, and references.',
+    summaryTransmittedBannerTitle: 'Dossier sent',
+    summaryTransmittedBannerText: 'Thank you for contacting MARGO Bridal & Special Occasion. Our administrator will be in touch with you shortly.',
     aestheticDirection: 'Aesthetic Direction',
     specTimeline: 'Timeline',
     specProportions: 'Proportions',
@@ -723,9 +763,13 @@ export const TRANSLATIONS: Record<SupportedLanguage, TranslationDict> = {
     aiConsultationFocus: 'Atelier Consultation Focus Points',
 
     btnBookWhatsapp: 'Book a consultation',
-    btnSendTelegram: 'Send to Atelier via Telegram',
-    btnSending: 'Transmitting Dossier...',
-    btnSent: 'Dossier Sent via Telegram Bot',
+    btnSendTelegram: 'Send dossier to the atelier',
+    btnSending: 'Sending...',
+    btnSent: 'Dossier sent',
+    thankYouOrderLabel: 'Order number',
+    thankYouMessage:
+      'Thank you for contacting MARGO Bridal & Special Occasion. Our administrator will be in touch with you shortly.',
+    thankYouClose: 'Close',
     btnShare: 'Share Dossier',
     btnCopied: 'Link Copied',
     btnDashboard: 'Atelier Dashboard',
@@ -733,7 +777,7 @@ export const TRANSLATIONS: Record<SupportedLanguage, TranslationDict> = {
 
     dashConsoleBadge: 'Live Atelier Console',
     dashTitle: 'Consultation Dossiers',
-    dashBackBtn: 'Back to Mini App',
+    dashBackBtn: 'Back to questionnaire — no password',
     dashTotal: 'Total Dossiers',
     dashNew: 'New Inquiries',
     dashScheduled: 'Scheduled Fittings',
@@ -746,6 +790,18 @@ export const TRANSLATIONS: Record<SupportedLanguage, TranslationDict> = {
     dashFilterNew: 'new',
     dashFilterScheduled: 'scheduled',
     dashFilterFitting: 'fitting',
+    dashFilterArchive: 'Archive',
+    dashArchiveBtn: 'Delete',
+    dashArchiveTitle: 'Delete this request?',
+    dashArchiveText: 'The request will be moved to the archive. It can be permanently deleted from there.',
+    dashArchiveConfirm: 'Move to archive',
+    dashPurgeBtn: 'Delete permanently',
+    dashPurgeTitle: 'Delete permanently?',
+    dashPurgeText: 'The request will be removed from the archive and cannot be restored. Enter the administrator password.',
+    dashPurgePassword: 'Password',
+    dashPurgeConfirm: 'Delete forever',
+    dashCancel: 'Cancel',
+    dashActionError: 'Could not complete this action.',
     statusNew: 'New Inbound',
     statusContacted: 'Contacted',
     statusScheduled: 'Fitting Scheduled',

@@ -445,7 +445,6 @@ export default function App() {
                   <SummaryView
                     dossier={dossier}
                     onEditStep={(step) => setCurrentStep(step)}
-                    onViewDashboard={() => setIsDashboard(true)}
                     onReset={handleReset}
                     lang={lang}
                   />
