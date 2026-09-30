@@ -372,9 +372,30 @@ export const AtelierDashboard: React.FC<AtelierDashboardProps> = ({ onBackToApp,
                       <div className="p-3 rounded-xl bg-[#FAF8F5] border border-[#E5DFD6]">
                         <span className="text-[10px] uppercase tracking-wider text-[#8A7D71] block">Measurements & Fit</span>
                         <div className="font-medium text-[#1A1816] mt-0.5">
-                          {item.measurements?.clothingSize || 'Bespoke'} · {item.measurements?.height || 'N/A'}
+                          {item.measurements?.clothingSize === 'dont_know'
+                            ? lang === 'ru'
+                              ? 'Не знаю'
+                              : 'Not sure'
+                            : item.measurements?.clothingSize || 'Bespoke'}{' '}
+                          · {item.measurements?.height || 'N/A'}
                         </div>
-                        <div className="text-[#6B5F54] mt-0.5">{item.measurements?.fitPreference}</div>
+                        <div className="text-[#6B5F54] mt-0.5">
+                          {Array.isArray(item.measurements?.fitPreferences) &&
+                          item.measurements.fitPreferences.length > 0
+                            ? item.measurements.fitPreferences
+                                .map((id) => {
+                                  const map: Record<string, string> = {
+                                    defined_waist: lang === 'ru' ? 'Подчёркнутая талия' : 'Defined waist',
+                                    soft_contour: lang === 'ru' ? 'Мягкое облегание' : 'Soft contour',
+                                    defined_shape: lang === 'ru' ? 'Чёткая форма' : 'Defined shape',
+                                    ease_of_movement: lang === 'ru' ? 'Свобода движений' : 'Ease of movement',
+                                    need_help: lang === 'ru' ? 'Нужна помощь' : 'Need help',
+                                  };
+                                  return map[id] || id;
+                                })
+                                .join(', ')
+                            : '—'}
+                        </div>
                       </div>
 
                       <div className="p-3 rounded-xl bg-[#FAF8F5] border border-[#E5DFD6]">
@@ -402,7 +423,7 @@ export const AtelierDashboard: React.FC<AtelierDashboardProps> = ({ onBackToApp,
                         <div className="grid grid-cols-3 gap-2.5">
                           {item.references.map((img, i) => (
                             <div key={i} className="aspect-[3/4] rounded-xl overflow-hidden border border-[#D9D1C5] bg-[#ECE5DA]">
-                              <img src={img} alt={`Reference ${i + 1}`} referrerPolicy="no-referrer" className="w-full h-full object-cover" />
+                              <img src={img} alt={`Reference ${i + 1}`} referrerPolicy="no-referrer" className="w-full h-full object-contain object-center" />
                             </div>
                           ))}
                         </div>

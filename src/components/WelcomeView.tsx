@@ -48,16 +48,16 @@ export const WelcomeView: React.FC<WelcomeViewProps> = ({ onStart, lang }) => {
         </motion.div>
       </div>
 
-      {/* Editorial Hero Visual Card — flexible height on mobile */}
+      {/* Editorial Hero — keep portrait ratio, never squash into a strip */}
       <motion.div
         variants={microFadeUp}
-        className="relative w-full flex-1 min-h-[72px] max-h-[22vh] sm:max-h-none sm:min-h-0 sm:flex-none sm:aspect-[3/4] max-w-md rounded-lg sm:rounded-2xl overflow-hidden shadow-lg sm:shadow-2xl my-0.5 sm:mb-8 border border-[#E8E2D9]"
+        className="relative aspect-[3/4] h-[min(36vh,300px)] w-auto max-w-full mx-auto sm:h-auto sm:w-full sm:max-w-md sm:max-h-none rounded-lg sm:rounded-2xl overflow-hidden shadow-lg sm:shadow-2xl my-1 sm:mb-8 border border-[#E8E2D9] shrink-0"
       >
         <img
           src={welcomeHeroImg}
           alt="MARGO Bridal & Special Occasion"
           referrerPolicy="no-referrer"
-          className="absolute inset-0 w-full h-full object-cover object-center sm:static sm:transform sm:scale-105 sm:transition-transform sm:duration-1000 sm:hover:scale-100"
+          className="absolute inset-0 w-full h-full object-contain object-center"
         />
       </motion.div>
 

@@ -4,7 +4,7 @@ import { Check } from 'lucide-react';
 import { OccasionType } from '../types';
 import { getOccasions } from '../data/atelierContent';
 import { SupportedLanguage, TRANSLATIONS } from '../data/translations';
-import { staggerContainer, microFadeUp, microFadeUpSubtle, coutureCardHover } from '../utils/motion';
+import { staggerContainer, microFadeUp, microFadeUpSubtle } from '../utils/motion';
 
 interface StepOccasionProps {
   selected: OccasionType | '';
@@ -57,26 +57,15 @@ export const StepOccasion: React.FC<StepOccasionProps> = ({ selected, onSelect, 
                   : 'border-[#EAE3D9] hover:border-[#BDB0A2] shadow-sm'
               }`}
             >
-              {/* Image Container with 4:5 aspect */}
+              {/* Image Container — full original visible, may shrink, never crop */}
               <div className="relative aspect-[4/5] w-full overflow-hidden bg-[#ECE6DD]">
                 <img
                   src={item.image}
                   alt={item.title}
                   referrerPolicy="no-referrer"
-                  className={`w-full h-full object-cover object-center transition-transform duration-700 ${
-                    isSelected ? 'scale-105' : 'group-hover:scale-105'
-                  }`}
+                  className="absolute inset-0 w-full h-full object-contain object-center"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#181512]/80 via-[#181512]/25 to-transparent" />
 
-                {/* Tag */}
-                <div className="absolute top-3 left-3">
-                  <span className="px-2.5 py-1 rounded-full bg-[#FAF8F5]/90 backdrop-blur-sm text-[#1A1816] text-[9px] uppercase tracking-[0.2em] font-medium border border-white/40">
-                    {item.tag}
-                  </span>
-                </div>
-
-                {/* Selection Checkmark Badge */}
                 {isSelected && (
                   <motion.div
                     initial={{ scale: 0.5, opacity: 0 }}
@@ -87,21 +76,31 @@ export const StepOccasion: React.FC<StepOccasionProps> = ({ selected, onSelect, 
                     <Check className="w-4 h-4" />
                   </motion.div>
                 )}
+              </div>
 
-                {/* Content Overlay */}
-                <div className="absolute bottom-4 left-4 right-4 text-[#FAF8F5]">
-                  <h3 className="font-serif text-xl sm:text-2xl font-light tracking-wide leading-snug">
-                    {item.title}
-                  </h3>
-                  <p className="text-[11px] text-[#DED5C8] line-clamp-2 mt-1 leading-relaxed font-light">
-                    {item.description}
-                  </p>
-                </div>
+              {/* Caption under photo — does not cover figure or dress */}
+              <div className="px-3 py-3 bg-[#FAF8F5] border-t border-[#EAE3D9]">
+                <span className="block text-[9px] uppercase tracking-[0.18em] font-medium text-[#867B71] leading-snug">
+                  {item.tag}
+                </span>
+                <h3 className="font-serif text-base sm:text-lg font-light text-[#1A1816] tracking-wide leading-snug mt-1 break-words">
+                  {item.title}
+                </h3>
+                <p className="text-[11px] text-[#6B5F54] mt-1 leading-relaxed font-light break-words">
+                  {item.description}
+                </p>
               </div>
             </motion.div>
           );
         })}
       </div>
+
+      <motion.p
+        variants={microFadeUp}
+        className="text-[10px] sm:text-[11px] text-[#8A7D71] font-light leading-relaxed mb-6 text-center max-w-md mx-auto px-1"
+      >
+        {t.step01PhotoNote}
+      </motion.p>
 
       {/* Navigation Footer */}
       <motion.div variants={microFadeUpSubtle} className="sticky bottom-4 z-20 w-full pt-2">
@@ -110,13 +109,13 @@ export const StepOccasion: React.FC<StepOccasionProps> = ({ selected, onSelect, 
           type="button"
           disabled={!selected}
           onClick={onNext}
-          className={`w-full py-3.5 px-6 rounded-full text-xs sm:text-sm font-medium tracking-[0.2em] uppercase transition-all duration-200 shadow-md ${
+          className={`w-full py-3.5 px-4 sm:px-6 rounded-full text-[10px] sm:text-sm font-medium tracking-[0.14em] sm:tracking-[0.2em] uppercase transition-all duration-200 shadow-md break-words leading-snug ${
             selected
               ? 'bg-[#1A1816] text-[#FAF8F5] hover:bg-[#2C2723] active:scale-[0.99] cursor-pointer'
               : 'bg-[#E5DDD2] text-[#9E9488] cursor-not-allowed'
           }`}
         >
-          {selected ? t.step01Continue : (lang === 'ru' ? 'Выберите повод для продолжения' : 'Select an Occasion')}
+          {selected ? t.step01Continue : t.step01SelectHint}
         </button>
       </motion.div>
     </motion.div>

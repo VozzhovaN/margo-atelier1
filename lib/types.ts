@@ -16,6 +16,7 @@ export interface Consultation {
     clothingSize?: string;
     size?: string;
     fitPreference?: string;
+    fitPreferences?: string[];
     notes?: string;
   };
   references: string[];

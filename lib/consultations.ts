@@ -93,7 +93,11 @@ export function createConsultationFromBody(body: any): Consultation {
         ? body.silhouette.join(', ')
         : body.silhouette
       : '',
-    style: body.style || '',
+    style: body.style
+      ? Array.isArray(body.style)
+        ? body.style.join(', ')
+        : body.style
+      : '',
     colors: body.colors || [],
     measurements: body.measurements || {},
     references: body.references || [],

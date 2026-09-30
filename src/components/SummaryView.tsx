@@ -14,7 +14,7 @@ import {
   RotateCcw,
 } from 'lucide-react';
 import { ConsultationDossier, AIStyleDirection } from '../types';
-import { CAMPAIGN_ASSETS, getSilhouettes } from '../data/atelierContent';
+import { CAMPAIGN_ASSETS, getColours, getFitPreferences, getSilhouettes, getStyles } from '../data/atelierContent';
 import { SupportedLanguage, TRANSLATIONS } from '../data/translations';
 import { staggerContainer, microFadeUp, microFadeUpSubtle } from '../utils/motion';
 
@@ -39,6 +39,38 @@ export const SummaryView: React.FC<SummaryViewProps> = ({
     if (selected.length === 0) return lang === 'ru' ? 'Не выбран' : 'Not selected';
     const map = Object.fromEntries(getSilhouettes(lang).map((s) => [s.id, s.name]));
     return selected.map((id) => map[id] || id).join(', ');
+  })();
+  const styleLabel = (() => {
+    const selected = Array.isArray(dossier.style) ? dossier.style : [];
+    if (selected.length === 0) return lang === 'ru' ? 'Не выбран' : 'Not selected';
+    const map = Object.fromEntries(getStyles(lang).map((s) => [s.id, s.name]));
+    return selected.map((id) => map[id] || id).join(', ');
+  })();
+  const colourItems = (() => {
+    const selected = Array.isArray(dossier.colors) ? dossier.colors : [];
+    const map = Object.fromEntries(getColours(lang).map((c) => [c.id, c]));
+    return selected.map((id) => map[id] || { id, name: id, hex: '#B8A896' });
+  })();
+  const colourLabel =
+    colourItems.length === 0
+      ? lang === 'ru'
+        ? 'Не выбран'
+        : 'Not selected'
+      : colourItems.map((c) => c.name).join(', ');
+  const fitLabel = (() => {
+    const selected = Array.isArray(dossier.measurements.fitPreferences)
+      ? dossier.measurements.fitPreferences
+      : [];
+    if (selected.length === 0) return lang === 'ru' ? 'Не выбрана' : 'Not selected';
+    const map = Object.fromEntries(getFitPreferences(lang).map((f) => [f.id, f.title]));
+    return selected.map((id) => map[id] || id).join(', ');
+  })();
+  const sizeLabel = (() => {
+    if (!dossier.measurements.clothingSize) return lang === 'ru' ? 'Не указан' : 'Not specified';
+    if (dossier.measurements.clothingSize === 'dont_know') {
+      return lang === 'ru' ? 'Не знаю' : 'Not sure';
+    }
+    return dossier.measurements.clothingSize;
   })();
   const [aiDirection, setAiDirection] = useState<AIStyleDirection | null>(
     dossier.aiStyleDirection || null
@@ -68,8 +100,9 @@ export const SummaryView: React.FC<SummaryViewProps> = ({
           silhouette: silhouetteLabel === (lang === 'ru' ? 'Не выбран' : 'Not selected')
             ? ''
             : silhouetteLabel,
-          style: dossier.style,
-          colors: dossier.colors,
+          style: styleLabel === (lang === 'ru' ? 'Не выбран' : 'Not selected') ? '' : styleLabel,
+          colors: colourLabel === (lang === 'ru' ? 'Не выбран' : 'Not selected') ? [] : colourItems.map((c) => c.name),
+          customColorNote: dossier.customColorNote,
           measurements: dossier.measurements,
           priorities: dossier.priorities,
           referenceNotes: dossier.referenceNotes,
@@ -125,7 +158,8 @@ export const SummaryView: React.FC<SummaryViewProps> = ({
 • Дата: ${dossier.date || dossier.timeline || 'В ближайшие месяцы'}
 • Формат: ${[...(dossier.settings || []), dossier.settingOther, dossier.eventCity].filter(Boolean).join(', ') || '—'}
 • Силуэт: ${silhouetteLabel}
-• Эстетика: ${dossier.style || 'Тихий люкс'}
+• Эстетика: ${styleLabel}
+• Палитра: ${colourLabel}${dossier.customColorNote ? `\n• Пожелания по цвету: ${dossier.customColorNote}` : ''}
 • Бюджетная категория: ${dossier.budget || 'Couture Bespoke'}
 • Имя клиента: ${dossier.contact.fullName}
 • Локация: ${dossier.contact.atelierLocation}
@@ -138,7 +172,8 @@ I have completed my consultation preparation dossier [#${dossierId}]:
 • Target Date: ${dossier.date || dossier.timeline || 'Upcoming'}
 • Format: ${[...(dossier.settings || []), dossier.settingOther, dossier.eventCity].filter(Boolean).join(', ') || '—'}
 • Preferred Silhouette: ${silhouetteLabel}
-• Style Essence: ${dossier.style || 'Quiet Luxury'}
+• Style Essence: ${styleLabel}
+• Palette: ${colourLabel}${dossier.customColorNote ? `\n• Colour notes: ${dossier.customColorNote}` : ''}
 • Budget Tier: ${dossier.budget || 'Couture Bespoke'}
 • Client Name: ${dossier.contact.fullName}
 • Location: ${dossier.contact.atelierLocation}
@@ -209,7 +244,7 @@ I would like to book my first private consultation appointment.`
             src={occasionImg}
             alt="Atelier Campaign Visual"
             referrerPolicy="no-referrer"
-            className="w-full h-full object-cover object-top"
+            className="w-full h-full object-contain object-center"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-[#181512]/90 via-[#181512]/30 to-transparent" />
 
@@ -232,7 +267,7 @@ I would like to book my first private consultation appointment.`
               {silhouetteLabel}
             </h2>
             <p className="text-xs text-[#EAE2D8] font-light mt-0.5">
-              {dossier.style || 'Quiet Luxury Minimalist'}
+              {styleLabel}
             </p>
           </div>
         </div>
@@ -250,13 +285,13 @@ I would like to book my first private consultation appointment.`
             <div className="p-2.5 rounded-xl bg-[#F6F1EA] border border-[#E9E2D8]">
               <span className="text-[9px] uppercase tracking-widest text-[#877C72] block">{t.specProportions}</span>
               <span className="font-serif text-sm text-[#1A1816] font-medium block truncate">
-                {dossier.measurements.clothingSize || 'Bespoke Size'}
+                {sizeLabel}
               </span>
             </div>
             <div className="p-2.5 rounded-xl bg-[#F6F1EA] border border-[#E9E2D8]">
               <span className="text-[9px] uppercase tracking-widest text-[#877C72] block">{t.specFit}</span>
               <span className="font-serif text-sm text-[#1A1816] font-medium block truncate">
-                {dossier.measurements.fitPreference?.split('&')[0] || 'Sculpted'}
+                {fitLabel}
               </span>
             </div>
             <div className="p-2.5 rounded-xl bg-[#F6F1EA] border border-[#E9E2D8]">
@@ -268,22 +303,32 @@ I would like to book my first private consultation appointment.`
           </div>
 
           {/* Color Palette Swatches */}
-          {dossier.colors.length > 0 && (
+          {(colourItems.length > 0 || dossier.customColorNote) && (
             <div className="pt-2">
               <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-[#63574D] block mb-2">
                 {t.selectedPalette}
               </span>
-              <div className="flex flex-wrap gap-2">
-                {dossier.colors.map((c, i) => (
-                  <span
-                    key={i}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#F5EFE8] border border-[#DFD6C9] text-xs text-[#2D2823] font-light"
-                  >
-                    <span className="w-2.5 h-2.5 rounded-full bg-[#B8A896] border border-black/20" />
-                    {c}
-                  </span>
-                ))}
-              </div>
+              {colourItems.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {colourItems.map((c) => (
+                    <span
+                      key={c.id}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#F5EFE8] border border-[#DFD6C9] text-xs text-[#2D2823] font-light"
+                    >
+                      <span
+                        className="w-2.5 h-2.5 rounded-full border border-black/20"
+                        style={{ backgroundColor: c.hex }}
+                      />
+                      {c.name}
+                    </span>
+                  ))}
+                </div>
+              )}
+              {dossier.customColorNote && (
+                <p className="text-xs text-[#63574D] font-light mt-2 leading-relaxed">
+                  {dossier.customColorNote}
+                </p>
+              )}
             </div>
           )}
 
@@ -315,7 +360,7 @@ I would like to book my first private consultation appointment.`
               <div className="grid grid-cols-3 gap-2.5">
                 {dossier.references.map((img, i) => (
                   <div key={i} className="aspect-[3/4] rounded-xl overflow-hidden border border-[#D9D1C5] bg-[#ECE5DA]">
-                    <img src={img} alt={`Reference ${i + 1}`} referrerPolicy="no-referrer" className="w-full h-full object-cover" />
+                    <img src={img} alt={`Reference ${i + 1}`} referrerPolicy="no-referrer" className="w-full h-full object-contain object-center" />
                   </div>
                 ))}
               </div>

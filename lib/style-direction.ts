@@ -126,7 +126,11 @@ Generate a personalized, evocative, and high-fashion "AI Style Direction" / "К�
 - Preferred Silhouette / Силуэт: ${silhouette || 'Fluid Architectural'}
 - Style Essence / Характер стиля: ${style || 'Quiet Luxury Editorial'}
 - Color Palette / Палитра: ${Array.isArray(colors) ? colors.join(', ') : colors || 'Ivory, Nude, Sand'}
-- Fit & Silhouette Details / Посадка: ${measurements?.fitPreference || 'Tailored to posture'}, Size/Height: ${measurements?.clothingSize || measurements?.size || 'Bespoke'} / ${measurements?.height || 'Custom'}
+- Fit & Silhouette Details / Посадка: ${
+  Array.isArray(measurements?.fitPreferences) && measurements.fitPreferences.length > 0
+    ? measurements.fitPreferences.join(', ')
+    : measurements?.fitPreference || 'Tailored to posture'
+}, Size/Height: ${measurements?.clothingSize || measurements?.size || 'Bespoke'} / ${measurements?.height || 'Custom'}
 - Client Notes / Пожелания клиента: ${measurements?.notes || 'None'}
 - Client Priorities / Приоритеты: ${Array.isArray(priorities) ? priorities.join(', ') : priorities || 'Fabric quality & architectural silhouette'}
 - Visual Reference Notes / Мудборд: ${referenceNotes || 'Editorial couture minimalism'}

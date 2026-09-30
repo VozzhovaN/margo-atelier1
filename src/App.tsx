@@ -53,12 +53,13 @@ const INITIAL_DOSSIER: ConsultationDossier = {
   eventCity: '',
   budget: '',
   silhouette: [],
-  style: '',
-  colors: ['Ivory & Warm Milk'],
+  style: [],
+  colors: [],
+  customColorNote: '',
   measurements: {
     height: '',
-    clothingSize: 'EU 38 (US 6)',
-    fitPreference: 'Sculpted Waist & Structure',
+    clothingSize: '',
+    fitPreferences: [],
     notes: '',
   },
   references: [],
@@ -100,18 +101,48 @@ export default function App() {
         measurements: {
           ...INITIAL_DOSSIER.measurements,
           ...(parsed.measurements ?? {}),
+          fitPreferences: Array.isArray((parsed.measurements as ClientMeasurements | undefined)?.fitPreferences)
+            ? ((parsed.measurements as ClientMeasurements).fitPreferences || []).filter((id) =>
+                ['defined_waist', 'soft_contour', 'defined_shape', 'ease_of_movement', 'need_help'].includes(id)
+              )
+            : [],
         },
         contact: {
           ...INITIAL_DOSSIER.contact,
           ...(parsed.contact ?? {}),
         },
-        colors: Array.isArray(parsed.colors) ? parsed.colors : INITIAL_DOSSIER.colors,
+        colors: Array.isArray(parsed.colors)
+          ? parsed.colors.filter((c) =>
+              [
+                'white',
+                'ivory',
+                'light_champagne',
+                'sand',
+                'powder_rose',
+                'rose_lilac',
+                'peach',
+                'orange',
+                'soft_blue',
+                'burgundy',
+                'navy',
+                'black',
+                'undecided',
+              ].includes(c)
+            )
+          : INITIAL_DOSSIER.colors,
+        customColorNote:
+          typeof parsed.customColorNote === 'string' ? parsed.customColorNote : '',
         references: Array.isArray(parsed.references) ? parsed.references : [],
         priorities: Array.isArray(parsed.priorities) ? parsed.priorities : INITIAL_DOSSIER.priorities,
         silhouette: Array.isArray(parsed.silhouette)
           ? parsed.silhouette
           : typeof parsed.silhouette === 'string' && parsed.silhouette
             ? [parsed.silhouette]
+            : [],
+        style: Array.isArray(parsed.style)
+          ? parsed.style
+          : typeof parsed.style === 'string' && parsed.style
+            ? [parsed.style]
             : [],
         budget:
           typeof parsed.budget === 'string' &&
@@ -194,8 +225,17 @@ export default function App() {
   const isDateScreen = currentStep === 'date' && !isDashboard;
   const isBudgetScreen = currentStep === 'budget' && !isDashboard;
   const isSilhouetteScreen = currentStep === 'silhouette' && !isDashboard;
+  const isStyleScreen = currentStep === 'style' && !isDashboard;
+  const isColoursScreen = currentStep === 'colours' && !isDashboard;
+  const isMeasurementsScreen = currentStep === 'measurements' && !isDashboard;
   const hideSiteFooter =
-    isWelcomeScreen || isDateScreen || isBudgetScreen || isSilhouetteScreen;
+    isWelcomeScreen ||
+    isDateScreen ||
+    isBudgetScreen ||
+    isSilhouetteScreen ||
+    isStyleScreen ||
+    isColoursScreen ||
+    isMeasurementsScreen;
 
   return (
     <div
@@ -225,7 +265,12 @@ export default function App() {
         className={`flex-1 w-full flex flex-col items-center justify-start min-h-0 ${
           isWelcomeScreen
             ? 'pb-0 overflow-hidden sm:overflow-visible sm:pb-12'
-            : isDateScreen || isBudgetScreen || isSilhouetteScreen
+            : isDateScreen ||
+                isBudgetScreen ||
+                isSilhouetteScreen ||
+                isStyleScreen ||
+                isColoursScreen ||
+                isMeasurementsScreen
               ? 'pt-3 sm:pt-4 pb-0'
               : 'pt-3 sm:pt-4 pb-12'
         }`}
@@ -324,7 +369,14 @@ export default function App() {
                 {currentStep === 'colours' && (
                   <StepColours
                     selectedColors={dossier.colors}
-                    onUpdate={({ colors }) => setDossier({ ...dossier, colors })}
+                    customColorNote={dossier.customColorNote}
+                    onUpdate={({ colors, customColorNote }) =>
+                      setDossier({
+                        ...dossier,
+                        colors,
+                        customColorNote: customColorNote ?? dossier.customColorNote,
+                      })
+                    }
                     onNext={goToNextStep}
                     lang={lang}
                   />

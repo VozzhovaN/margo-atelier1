@@ -4,10 +4,13 @@ import {
 import { SupportedLanguage } from './translations';
 
 // Campaign Assets
-import bridalImg from '../assets/images/margo_bridal_editorial_1789726696806.jpg';
 import eveningImg from '../assets/images/margo_evening_editorial_1789726710943.jpg';
 import specialOccasionImg from '../assets/images/margo_special_occasion_1789726725864.jpg';
 import customDressImg from '../assets/images/margo_custom_dress_1789726740808.jpg';
+import occasionBridalImg from '../assets/images/margo_occasion_bridal.jpg';
+import occasionEveningImg from '../assets/images/margo_occasion_evening.jpg';
+import occasionSpecialImg from '../assets/images/margo_occasion_special.png';
+import occasionCustomImg from '../assets/images/margo_occasion_custom.jpg';
 import columnImg from '../assets/images/margo_silhouette_column.png';
 import alineImg from '../assets/images/margo_silhouette_aline.jpg';
 import slipImg from '../assets/images/margo_silhouette_slip.png';
@@ -16,10 +19,10 @@ import mermaidImg from '../assets/images/margo_silhouette_mermaid.jpg';
 import fabricImg from '../assets/images/margo_fabric_detail_1789726769694.jpg';
 
 export const CAMPAIGN_ASSETS = {
-  bridal: bridalImg,
-  evening: eveningImg,
-  specialOccasion: specialOccasionImg,
-  customDress: customDressImg,
+  bridal: occasionBridalImg,
+  evening: occasionEveningImg,
+  specialOccasion: occasionSpecialImg,
+  customDress: occasionCustomImg,
   column: columnImg,
   fabric: fabricImg,
 };
@@ -30,77 +33,89 @@ export interface LocalizedOccasion {
   subtitle: Record<SupportedLanguage, string>;
   description: Record<SupportedLanguage, string>;
   image: string;
-  tag: string;
+  tag: Record<SupportedLanguage, string>;
 }
 
 export const OCCASIONS_DATA: LocalizedOccasion[] = [
   {
     id: 'bridal',
     title: {
-      ru: 'Свадебный Кутюр',
-      en: 'Bridal Couture',
+      ru: 'Свадебный образ',
+      en: 'Bridal look',
     },
     subtitle: {
-      ru: 'Современная Свадебная Эстетика',
-      en: 'Contemporary Wedding Vision',
+      ru: 'Современная свадебная эстетика',
+      en: 'Contemporary wedding aesthetic',
     },
     description: {
-      ru: 'Скульптурные архитектурные платья и струящиеся шелковые силуэты, переосмысляющие свадебную чистоту.',
-      en: 'Sculptural architectural gowns and fluid silk silhouettes that redefine modern bridal serenity.',
+      ru: 'Скульптурные архитектурные платья и струящиеся силуэты, переосмысляющие свадебную чистоту.',
+      en: 'Sculptural architectural gowns and fluid silhouettes that redefine modern bridal serenity.',
     },
-    image: bridalImg,
-    tag: 'Haute Mariée',
+    image: occasionBridalImg,
+    tag: {
+      ru: 'Торжество',
+      en: 'Celebration',
+    },
   },
   {
     id: 'evening',
     title: {
-      ru: 'Вечерний Образ',
-      en: 'Evening Gown',
+      ru: 'Вечерний образ',
+      en: 'Evening look',
     },
     subtitle: {
-      ru: 'Gala, Black Tie & Красная Дорожка',
-      en: 'Gala, Black Tie & Red Carpet',
+      ru: 'Вечерний выход',
+      en: 'Evening outing',
     },
     description: {
-      ru: 'Эффектные и одновременно непринужденные платья с открытой спиной, итальянским шелком и мягким сиянием.',
-      en: 'Dramatic yet effortless evening wear created with low backs, noble Italian textiles and Mediterranean warmth.',
+      ru: 'Элегантные платья для вечернего выхода — выразительные силуэты, мягкие драпировки и красивые детали. Выберите настроение, которое вам близко.',
+      en: 'Elegant dresses for an evening out — expressive silhouettes, soft draping and beautiful details. Choose the mood that feels close to you.',
     },
-    image: eveningImg,
-    tag: 'Soirée Couture',
+    image: occasionEveningImg,
+    tag: {
+      ru: 'Вечерние платья',
+      en: 'Evening dresses',
+    },
   },
   {
     id: 'special_occasion',
     title: {
-      ru: 'Особый Повод',
-      en: 'Special Occasion',
+      ru: 'Образ для особого события',
+      en: 'Look for a special event',
     },
     subtitle: {
-      ru: 'Знаковые События & Камерные Торжества',
-      en: 'Milestone Celebrations & Intimate Events',
+      ru: 'Особое событие',
+      en: 'Special event',
     },
     description: {
-      ru: 'Четкий тейлоринг, платья-жакеты и драпированные комплекты, сочетающие женственность и статусность.',
-      en: 'Sharp tailoring, coat dresses and draped ensembles balancing feminine ease with high-fashion presence.',
+      ru: 'Для свадьбы близких, торжества или важной встречи — платья и элегантные комплекты, в которых вы будете чувствовать себя красиво и уверенно.',
+      en: 'For a loved one’s wedding, a celebration or an important meeting — dresses and elegant sets in which you will feel beautiful and confident.',
     },
-    image: specialOccasionImg,
-    tag: 'Événement',
+    image: occasionSpecialImg,
+    tag: {
+      ru: 'Особое событие',
+      en: 'Special event',
+    },
   },
   {
     id: 'custom_dress',
     title: {
-      ru: 'Индивидуальный Пошив',
-      en: 'Custom Dress',
+      ru: 'Платье на заказ',
+      en: 'Made-to-order dress',
     },
     subtitle: {
-      ru: 'Ателье Sur-Mesure под Ключ',
-      en: 'Bespoke Atelier Creation',
+      ru: 'Заказ по модели',
+      en: 'Order by model',
     },
     description: {
-      ru: 'Абсолютно уникальное кутюрное изделие, спроектированное и отшитое вручную точно по вашим меркам.',
-      en: 'A completely unique couture piece designed and sculpted directly on your proportions from sketch to final stitch.',
+      ru: 'Выберите модель и ткань в нашем ателье. Мы обсудим посадку, детали, сроки и возможность изготовления платья по вашим меркам.',
+      en: 'Choose a model and fabric in our atelier. We will discuss fit, details, timing and the possibility of making the dress to your measurements.',
     },
-    image: customDressImg,
-    tag: 'Sur-Mesure',
+    image: occasionCustomImg,
+    tag: {
+      ru: 'Заказ по модели',
+      en: 'Order by model',
+    },
   },
 ];
 
@@ -240,7 +255,7 @@ export interface LocalizedStyle {
   name: Record<SupportedLanguage, string>;
   subtitle: Record<SupportedLanguage, string>;
   description: Record<SupportedLanguage, string>;
-  image: string;
+  image?: string;
   moodWords: Record<SupportedLanguage, string[]>;
 }
 
@@ -248,81 +263,100 @@ export const STYLES_DATA: LocalizedStyle[] = [
   {
     id: 'quiet_luxury',
     name: {
-      ru: 'Тихий Люкс и Минимализм',
-      en: 'Quiet Luxury Minimalist',
+      ru: 'Тихая роскошь / Минимализм',
+      en: 'Quiet luxury / Minimalism',
     },
     subtitle: {
-      ru: 'Сдержанное Благородство & Чистые Ткани',
-      en: 'Understated Nobility & Pure Fabrics',
+      ru: 'Лаконичность и элегантность',
+      en: 'Laconism and elegance',
     },
     description: {
-      ru: 'Никаких лишних деталей. Роскошь выражается в безупречной линии, плотности шелка и невидимой ручной обработке.',
-      en: 'Zero excess. The luxury resides in the perfection of line, weight of silk, and invisible couture finishing.',
+      ru: 'Чистые линии, продуманная посадка и минимум декора. Красота образа раскрывается в силуэте, фактуре ткани и аккуратных деталях.',
+      en: 'Clean lines, thoughtful fit and minimal decoration. The beauty of the look comes through in the silhouette, fabric texture and careful details.',
     },
     image: columnImg,
     moodWords: {
-      ru: ['Чистая линия', 'Тяжелый шелк', 'Потайные стежки', 'Архитектура'],
-      en: ['Pure line', 'Heavy silk', 'Invisible stitches', 'Architectural'],
+      ru: ['Чистые линии', 'Минимум декора', 'Выразительная фактура', 'Сдержанная элегантность'],
+      en: ['Clean lines', 'Minimal decoration', 'Expressive texture', 'Restrained elegance'],
     },
   },
   {
     id: 'contemporary_romantic',
     name: {
-      ru: 'Современная Романтика',
-      en: 'Contemporary Romantic',
+      ru: 'Современная романтика',
+      en: 'Contemporary romance',
     },
     subtitle: {
-      ru: 'Мягкие Драпировки & Средиземноморская Поэзия',
-      en: 'Soft Draping & Mediterranean Poetry',
+      ru: 'Нежность и мягкие линии',
+      en: 'Tenderness and soft lines',
     },
     description: {
-      ru: 'Текучие силуэты с тактильными слоями, мягкими сборками и чарующей игрой естественного солнечного света.',
-      en: 'Fluid, poetic silhouettes with tactile layers, gentle gathers, and soft natural light interaction.',
+      ru: 'Мягкие драпировки, плавные линии и деликатные детали. Женственный образ, который может быть как лёгким и воздушным, так и более собранным — в зависимости от выбранной ткани.',
+      en: 'Soft draping, fluid lines and delicate details. A feminine look that can feel light and airy or more composed — depending on the chosen fabric.',
     },
     image: customDressImg,
     moodWords: {
-      ru: ['Шифоновые слои', 'Непринужденность', 'Мягкие складки', 'Поэтичный свет'],
-      en: ['Chiffon layers', 'Effortless grace', 'Gentle gathers', 'Poetic light'],
+      ru: ['Мягкие складки', 'Плавные линии', 'Нежные детали', 'Лёгкость движения'],
+      en: ['Soft folds', 'Fluid lines', 'Gentle details', 'Ease of movement'],
     },
   },
   {
     id: 'sculptural_avantgarde',
     name: {
-      ru: 'Скульптурный & Архитектурный',
-      en: 'Sculptural & Architectural',
+      ru: 'Скульптурный / Архитектурный стиль',
+      en: 'Sculptural / Architectural style',
     },
     subtitle: {
-      ru: 'Геометрическая Строгость & Пропорции',
-      en: 'Geometric Rigor & Modern Proportions',
+      ru: 'Выразительная форма',
+      en: 'Expressive form',
     },
     description: {
-      ru: 'Смелые срезы, асимметричный вырез и структурные объемы, вдохновленные средиземноморским модернизмом.',
-      en: 'Daring cuts, asymmetrical necklines, and structured volumes influenced by Mediterranean modernism.',
+      ru: 'Чёткие линии, необычные пропорции и продуманный объём. Асимметрия, выразительные складки или структурированные детали делают образ современным и запоминающимся.',
+      en: 'Clear lines, unusual proportions and considered volume. Asymmetry, expressive folds or structured details make the look contemporary and memorable.',
     },
     image: specialOccasionImg,
     moodWords: {
-      ru: ['Асимметрия', 'Высокий воротник', 'Структурный объем', 'Высокая мода'],
-      en: ['Asymmetry', 'High collar', 'Structured volume', 'High fashion'],
+      ru: ['Асимметрия', 'Чёткие линии', 'Продуманный объём', 'Выразительные детали'],
+      en: ['Asymmetry', 'Clear lines', 'Considered volume', 'Expressive details'],
     },
   },
   {
     id: 'sensual_siren',
     name: {
-      ru: 'Чувственный с Открытой Спиной',
-      en: 'Sensual & Open-Back',
+      ru: 'Чувственная элегантность',
+      en: 'Sensual elegance',
     },
     subtitle: {
-      ru: 'Интимная Элегантность & Жидкий Атлас',
-      en: 'Intimate Elegance & Fluid Contour',
+      ru: 'Чувственность и лёгкость',
+      en: 'Sensuality and lightness',
     },
     description: {
-      ru: 'Глубокий открытый вырез на спине, лаконичный фронт и тактильный атлас, струящийся по телу с абсолютной уверенностью.',
-      en: 'Deep plunging back, clean front, and tactile liquid satin draping against the skin with effortless confidence.',
+      ru: 'Струящаяся ткань и мягкое прилегание к фигуре. Открытая спина, тонкие бретели или разрез могут стать акцентом — вы выбираете комфортную для себя степень открытости.',
+      en: 'Fluid fabric and a soft fit to the figure. An open back, thin straps or a slit can become the accent — you choose the level of openness that feels comfortable.',
     },
     image: eveningImg,
     moodWords: {
-      ru: ['Открытая спина', 'Жидкий атлас', 'Деликатный разрез', 'Магнетизм'],
-      en: ['Low back', 'Liquid satin', 'Subtle slit', 'Effortless allure'],
+      ru: ['Струящаяся ткань', 'Мягкое прилегание', 'Открытые детали — по желанию', 'Лаконичный силуэт'],
+      en: ['Fluid fabric', 'Soft fit', 'Open details — optional', 'Laconic silhouette'],
+    },
+  },
+  {
+    id: 'undecided',
+    name: {
+      ru: 'Пока не определилась',
+      en: 'Not decided yet',
+    },
+    subtitle: {
+      ru: 'Дополнительный вариант',
+      en: 'Additional option',
+    },
+    description: {
+      ru: 'Хочу подобрать направление вместе с вами.',
+      en: 'I want to choose the direction together with you.',
+    },
+    moodWords: {
+      ru: [],
+      en: [],
     },
   },
 ];
@@ -338,88 +372,185 @@ export interface LocalizedColor {
 
 export const COLOURS_DATA: LocalizedColor[] = [
   {
-    id: 'ivory_warm_milk',
-    name: {
-      ru: 'Айвори и Теплое Молоко',
-      en: 'Ivory & Warm Milk',
-    },
-    hex: '#F9F7F2',
-    secondaryHex: '#EDE8DF',
+    id: 'white',
+    name: { ru: 'Белый', en: 'White' },
+    hex: '#FAFAFA',
+    secondaryHex: '#F0F0F0',
     description: {
-      ru: 'Чистый, мягкий и лучистый оттенок в лучах средиземноморского солнца.',
-      en: 'Pure, radiant and luminous under Mediterranean sunlight.',
+      ru: 'Чистый светлый оттенок без кремового подтона. Подчёркивает линии платья и создаёт выразительный свадебный образ.',
+      en: 'A clean light shade without a creamy undertone. It emphasizes the dress lines and creates a clear bridal look.',
     },
     paletteMood: {
-      ru: 'Вне времени · Основа Свадебного Кутюра',
-      en: 'Timeless Bridal & Atelier Core',
+      ru: 'Чистота и свежесть',
+      en: 'Purity and freshness',
     },
   },
   {
-    id: 'sand_champagne',
-    name: {
-      ru: 'Песок и Теплое Шампанское',
-      en: 'Sand & Warm Champagne',
-    },
-    hex: '#E7DFD4',
-    secondaryHex: '#D8CCBD',
+    id: 'ivory',
+    name: { ru: 'Айвори', en: 'Ivory' },
+    hex: '#F4EDE3',
+    secondaryHex: '#E8DFD2',
     description: {
-      ru: 'Натуральные минеральные тона теплого прибрежного известняка и дюн.',
-      en: 'Muted natural desert and seaside limestone mineral tones.',
+      ru: 'Нежный оттенок слоновой кости с лёгким тёплым подтоном. Для мягкого, изысканного свадебного образа.',
+      en: 'A soft ivory shade with a light warm undertone. For a gentle, refined bridal look.',
     },
     paletteMood: {
-      ru: 'Современный Нейтралитет & Глубина',
-      en: 'Contemporary Neutral & Subtle Depth',
+      ru: 'Мягкость и элегантность',
+      en: 'Softness and elegance',
     },
   },
   {
-    id: 'terracotta_rose',
-    name: {
-      ru: 'Пудровый и Тосканская Терракота',
-      en: 'Blush & Tuscan Terracotta',
-    },
-    hex: '#EAD7CD',
-    secondaryHex: '#D7B4A4',
+    id: 'light_champagne',
+    name: { ru: 'Светлый шампань', en: 'Light champagne' },
+    hex: '#E9DFD0',
+    secondaryHex: '#DCCFBA',
     description: {
-      ru: 'Теплые землистые полутона, напоминающие залитые солнцем итальянские виллы.',
-      en: 'Warm earthy undertones reminiscent of sun-baked Italian villas.',
+      ru: 'Светлый бежевый оттенок с золотистым подтоном. Мягко раскрывается в сатине и добавляет образу теплоту.',
+      en: 'A light beige shade with a golden undertone. It softens beautifully in satin and adds warmth to the look.',
     },
     paletteMood: {
-      ru: 'Чувственный & Теплый Минеральный',
-      en: 'Sensual & Warm Earthy',
+      ru: 'Деликатное сияние',
+      en: 'Delicate glow',
     },
   },
   {
-    id: 'mediterranean_olive',
-    name: {
-      ru: 'Приглушенная Олива и Селадон',
-      en: 'Muted Olive & Celadon',
-    },
-    hex: '#D7DDD4',
-    secondaryHex: '#BFC8BA',
+    id: 'sand',
+    name: { ru: 'Песочный', en: 'Sand' },
+    hex: '#D6C7B0',
+    secondaryHex: '#C7B69A',
     description: {
-      ru: 'Мягкий органический серебристо-зеленый оттенок средиземноморских оливковых рощ.',
-      en: 'Soft organic silver-green honoring Mediterranean flora.',
+      ru: 'Сдержанный тёплый бежевый, вдохновлённый прибрежным песком. Для лаконичных платьев и элегантных комплектов.',
+      en: 'A restrained warm beige inspired by coastal sand. For laconic dresses and elegant sets.',
     },
     paletteMood: {
-      ru: 'Редакционный & Утонченный Ботанический',
-      en: 'Editorial & Refined Botanical',
+      ru: 'Естественность и спокойствие',
+      en: 'Natural calm',
     },
   },
   {
-    id: 'noir_midnight',
-    name: {
-      ru: 'Глубокий Ночной Нуар и Эспрессо',
-      en: 'Midnight Noir & Deep Espresso',
-    },
-    hex: '#1E1B18',
-    secondaryHex: '#2B2622',
+    id: 'powder_rose',
+    name: { ru: 'Пудровая роза', en: 'Powder rose' },
+    hex: '#E8D0CB',
+    secondaryHex: '#D9B8B3',
     description: {
-      ru: 'Высококонтрастная бархатная глубина для драматической Black Tie элегантности.',
-      en: 'High-contrast velvet darkness for dramatic black-tie elegance.',
+      ru: 'Приглушённый розовый оттенок с мягким сиянием. Красиво сочетается с плавными линиями и деликатными драпировками.',
+      en: 'A muted pink shade with a soft glow. It pairs beautifully with fluid lines and delicate draping.',
     },
     paletteMood: {
-      ru: 'Скульптурный Black Tie & Высокий Кутюр',
-      en: 'Sculptural Black Tie & Sharp Couture',
+      ru: 'Нежность и романтика',
+      en: 'Tenderness and romance',
+    },
+  },
+  {
+    id: 'rose_lilac',
+    name: { ru: 'Розово-лиловый', en: 'Rose lilac' },
+    hex: '#DCC9D6',
+    secondaryHex: '#C9B3C5',
+    description: {
+      ru: 'Нежный розовый с лёгким лиловым подтоном. Для романтичного образа с современным характером.',
+      en: 'A soft pink with a light lilac undertone. For a romantic look with a contemporary character.',
+    },
+    paletteMood: {
+      ru: 'Прохладная утончённость',
+      en: 'Cool refinement',
+    },
+  },
+  {
+    id: 'peach',
+    name: { ru: 'Персиковый', en: 'Peach' },
+    hex: '#F0D5C4',
+    secondaryHex: '#E4C0AA',
+    description: {
+      ru: 'Светлый тёплый оттенок с розово-абрикосовым подтоном. Добавляет образу свежесть и мягкое солнечное настроение.',
+      en: 'A light warm shade with a rose-apricot undertone. It brings freshness and a soft sunny mood.',
+    },
+    paletteMood: {
+      ru: 'Тепло и мягкость',
+      en: 'Warmth and softness',
+    },
+  },
+  {
+    id: 'orange',
+    name: { ru: 'Оранжевый', en: 'Orange' },
+    hex: '#D86B35',
+    secondaryHex: '#C45A28',
+    description: {
+      ru: 'Насыщенный тёплый цвет для смелого образа. Эффектно раскрывается в сиянии сатина и крупных складках.',
+      en: 'A rich warm colour for a bold look. It shines beautifully in satin and large folds.',
+    },
+    paletteMood: {
+      ru: 'Энергия и выразительность',
+      en: 'Energy and expression',
+    },
+  },
+  {
+    id: 'soft_blue',
+    name: { ru: 'Нежно-голубой', en: 'Soft blue' },
+    hex: '#C8D8E6',
+    secondaryHex: '#B3C7DA',
+    description: {
+      ru: 'Мягкий светло-голубой оттенок, напоминающий ясное небо над океаном. Для воздушного и элегантного образа.',
+      en: 'A soft light-blue shade reminiscent of clear sky above the ocean. For an airy and elegant look.',
+    },
+    paletteMood: {
+      ru: 'Лёгкость и свежесть',
+      en: 'Lightness and freshness',
+    },
+  },
+  {
+    id: 'burgundy',
+    name: { ru: 'Бордовый', en: 'Burgundy' },
+    hex: '#6E1F2C',
+    secondaryHex: '#541821',
+    description: {
+      ru: 'Богатый винный оттенок с выразительным сиянием. Для вечерних платьев, торжественных событий и особых случаев.',
+      en: 'A rich wine shade with expressive glow. For evening dresses, celebrations and special occasions.',
+    },
+    paletteMood: {
+      ru: 'Глубина и изысканность',
+      en: 'Depth and refinement',
+    },
+  },
+  {
+    id: 'navy',
+    name: { ru: 'Тёмно-синий · Navy', en: 'Deep navy' },
+    hex: '#1A2744',
+    secondaryHex: '#121C33',
+    description: {
+      ru: 'Глубокий тёмно-синий оттенок для утончённого вечернего образа. Подчёркивает чистоту кроя и мягкие переливы сатина.',
+      en: 'A deep navy shade for a refined evening look. It emphasizes clean cutting and soft satin reflections.',
+    },
+    paletteMood: {
+      ru: 'Сдержанная элегантность',
+      en: 'Restrained elegance',
+    },
+  },
+  {
+    id: 'black',
+    name: { ru: 'Чёрный', en: 'Black' },
+    hex: '#141414',
+    secondaryHex: '#2A2A2A',
+    description: {
+      ru: 'Вневременной вечерний цвет. Подчёркивает силуэт, открытые линии и контраст между светом и складками ткани.',
+      en: 'A timeless evening colour. It emphasizes silhouette, open lines and the contrast between light and fabric folds.',
+    },
+    paletteMood: {
+      ru: 'Классика и выразительность',
+      en: 'Classic expression',
+    },
+  },
+  {
+    id: 'undecided',
+    name: { ru: 'Пока не определилась', en: 'Not decided yet' },
+    hex: '#EDE8E1',
+    secondaryHex: '#E0DAD2',
+    description: {
+      ru: 'Хочу обсудить оттенки и выбрать подходящий цвет на консультации.',
+      en: 'I want to discuss shades and choose a suitable colour at the consultation.',
+    },
+    paletteMood: {
+      ru: 'Подберём вместе',
+      en: 'We will choose together',
     },
   },
 ];
@@ -553,8 +684,8 @@ export const PRIORITIES_DATA: LocalizedPriority[] = [
       en: 'Noble Fabrics & Tactile Luxury',
     },
     description: {
-      ru: 'Чувственное прикосновение 100% плотного шелка, крепдешина из Комо и чистой органзы.',
-      en: 'The sensual touch of 100% heavy silk, Como crêpe, and pure organza.',
+      ru: 'Чувственное прикосновение натуральных тканей.',
+      en: 'The sensual touch of natural fabrics.',
     },
   },
   {
@@ -696,27 +827,58 @@ export const ATELIER_LOCATIONS_DATA = [
 
 export const FIT_PREFERENCES_DATA = [
   {
-    id: 'sculpted',
-    title: { ru: 'Скульптурная талия и осанка', en: 'Sculpted Waist & Structure' },
+    id: 'defined_waist',
+    title: {
+      ru: 'Подчёркнутая талия и поддержка',
+      en: 'Defined waist and support',
+    },
     desc: {
-      ru: 'Анатомическая внутренняя поддержка, формирующая осанку, оставаясь дышащей и легкой.',
-      en: 'Contoured internal support shaping posture while remaining breathable.',
+      ru: 'Мне нравится чёткая линия талии и ощущение поддержки в области лифа. Степень прилегания обсудим на консультации.',
+      en: 'I like a clear waistline and a feeling of support in the bodice. We will discuss how close the fit should be at the consultation.',
     },
   },
   {
-    id: 'fluid',
-    title: { ru: 'Текучая пластика и крой по косой', en: 'Fluid & Liquid Bias Ease' },
+    id: 'soft_contour',
+    title: {
+      ru: 'Мягкое облегание',
+      en: 'Soft contour',
+    },
     desc: {
-      ru: 'Неструктурированный струящийся шелк, следующий за пластикой тела без жестких косточек.',
-      en: 'Unstructured liquid drape following body motion without restrictive boning.',
+      ru: 'Хочу, чтобы ткань плавно следовала линиям фигуры, сохраняя лёгкость и комфорт.',
+      en: 'I want the fabric to follow the body softly while staying light and comfortable.',
     },
   },
   {
-    id: 'tailored',
-    title: { ru: 'Архитектурный четкий тейлоринг', en: 'Architectural Tailored Fit' },
+    id: 'defined_shape',
+    title: {
+      ru: 'Чёткая форма',
+      en: 'Defined shape',
+    },
     desc: {
-      ru: 'Четкая линия плеч и чистое вертикальное падение ткани, соединяющие строгость и легкость.',
-      en: 'Crisp shoulder lines and clean vertical drape balancing structure and lightness.',
+      ru: 'Мне близки собранный силуэт, выразительная линия плеч и ткань, которая держит форму.',
+      en: 'I prefer a composed silhouette, a clear shoulder line and fabric that holds its shape.',
+    },
+  },
+  {
+    id: 'ease_of_movement',
+    title: {
+      ru: 'Свобода движений',
+      en: 'Ease of movement',
+    },
+    desc: {
+      ru: 'Предпочитаю более свободную посадку, чтобы было удобно ходить, сидеть и танцевать.',
+      en: 'I prefer a freer fit so it is comfortable to walk, sit and dance.',
+    },
+  },
+  {
+    id: 'need_help',
+    title: {
+      ru: 'Нужна помощь с выбором',
+      en: 'Need help choosing',
+    },
+    desc: {
+      ru: 'Хочу обсудить варианты и подобрать комфортную посадку на консультации.',
+      en: 'I want to discuss options and choose a comfortable fit at the consultation.',
     },
   },
 ];
@@ -762,7 +924,7 @@ export const getOccasions = (lang: SupportedLanguage) =>
     subtitle: o.subtitle[lang],
     description: o.description[lang],
     image: o.image,
-    tag: o.tag,
+    tag: o.tag[lang],
   }));
 
 export const getSilhouettes = (lang: SupportedLanguage) =>

@@ -26,7 +26,9 @@ export interface TranslationDict {
   step01Title: string;
   step01TitleItalic: string;
   step01Subtitle: string;
+  step01PhotoNote: string;
   step01Continue: string;
+  step01SelectHint: string;
 
   // Step Date
   step02Badge: string;
@@ -81,6 +83,10 @@ export interface TranslationDict {
   step05TitleItalic: string;
   step05Subtitle: string;
   step05Continue: string;
+  step05SelectHint: string;
+  step05PageFooterBrand: string;
+  step05PageFooterPlace: string;
+  step05PageFooterMode: string;
 
   // Step Colours
   step06Badge: string;
@@ -88,8 +94,14 @@ export interface TranslationDict {
   step06TitleItalic: string;
   step06Subtitle: string;
   step06CustomLabel: string;
+  step06CustomOptional: string;
   step06CustomPlaceholder: string;
+  step06Disclaimer: string;
   step06Continue: string;
+  step06SelectHint: string;
+  step06PageFooterBrand: string;
+  step06PageFooterPlace: string;
+  step06PageFooterMode: string;
 
   // Step Measurements
   step07Badge: string;
@@ -97,13 +109,23 @@ export interface TranslationDict {
   step07TitleItalic: string;
   step07Subtitle: string;
   step07HeightLabel: string;
+  step07HeightOptional: string;
   step07HeightPlaceholder: string;
   step07SizeLabel: string;
+  step07SizeOptional: string;
+  step07SizePlaceholder: string;
   step07SizeDefault: string;
+  step07SizeDontKnow: string;
+  step07SizeHint: string;
   step07FitLabel: string;
+  step07FitHint: string;
   step07NotesLabel: string;
+  step07NotesOptional: string;
   step07NotesPlaceholder: string;
   step07Continue: string;
+  step07PageFooterBrand: string;
+  step07PageFooterPlace: string;
+  step07PageFooterMode: string;
 
   // Step References
   step08Badge: string;
@@ -114,6 +136,8 @@ export interface TranslationDict {
   step08UploadSubtitle: string;
   step08UploadLimits: string;
   step08CuratedLabel: string;
+  step08GalleryHint: string;
+  step08GalleryMax: string;
   step08LinkNotesLabel: string;
   step08LinkNotesPlaceholder: string;
   step08Continue: string;
@@ -229,11 +253,15 @@ export const TRANSLATIONS: Record<SupportedLanguage, TranslationDict> = {
     stepIndicator: (current, total) => `Шаг ${String(current).padStart(2, '0')} из ${String(total).padStart(2, '0')}`,
     headerSub: 'Консультация',
 
-    step01Badge: 'Шаг 01 · Повод и Формат',
+    step01Badge: 'Шаг 01 · Повод и формат',
     step01Title: 'Ваш особенный',
     step01TitleItalic: 'повод',
-    step01Subtitle: 'Каждое кутюрное изделие начинается с контекста атмосферы и света предстоящего события.',
-    step01Continue: 'Перейти к Дате и Атмосфере',
+    step01Subtitle:
+      'Каждое изделие начинается с контекста атмосферы и света предстоящего события.',
+    step01PhotoNote:
+      'Изображения передают настроение и направление стиля. Наличие моделей и возможность изготовления уточним на консультации.',
+    step01Continue: 'Далее: о вашем событии',
+    step01SelectHint: 'Выберите повод',
 
     step02Badge: 'Шаг 02 · Ваше событие',
     step02Title: 'Когда и где состоится',
@@ -284,32 +312,59 @@ export const TRANSLATIONS: Record<SupportedLanguage, TranslationDict> = {
     step04PageFooterMode: 'В ателье и онлайн',
     step04PageFooterTag: 'Платья · Ткани · Аксессуары',
 
-    step05Badge: 'Шаг 05 · Эстетический Дух',
-    step05Title: 'Стилевой',
-    step05TitleItalic: 'характер изделия',
-    step05Subtitle: 'Определение эмоциональной тональности, легкости и настроения вашего кутюра.',
-    step05Continue: 'Перейти к Палитре Тканей',
+    step05Badge: 'Шаг 05 · Стиль и настроение',
+    step05Title: 'Каким вы видите',
+    step05TitleItalic: 'свой образ?',
+    step05Subtitle:
+      'Сдержанным, романтичным, выразительным или чувственным? Выберите одно или несколько направлений, которые вам близки. Детали мы обсудим на консультации.',
+    step05Continue: 'Далее: ткани и цвета',
+    step05SelectHint: 'Выберите направление',
+    step05PageFooterBrand: 'MARGO Bridal & Special Occasion',
+    step05PageFooterPlace: 'Onrus, Western Cape, South Africa',
+    step05PageFooterMode: 'В ателье и онлайн',
 
-    step06Badge: 'Шаг 06 · Средиземноморские Оттенки',
-    step06Title: 'Благородная палитра',
-    step06TitleItalic: 'натурального шелка',
-    step06Subtitle: 'Теплые минералы, невыбеленный молочный шелк и мягкие тени. Выберите до 2 оттенков.',
-    step06CustomLabel: 'Пожелание по индивидуальному оттенку (по желанию)',
-    step06CustomPlaceholder: 'Например, приглушенный жемчужный с золотистым отливом или под тон фамильного кружева...',
-    step06Continue: 'Перейти к Пропорциям и Посадке',
+    step06Badge: 'Шаг 06 · Ткани и цвета',
+    step06Title: 'Палитра',
+    step06TitleItalic: 'вашего образа',
+    step06Subtitle:
+      'Светлые свадебные оттенки, мягкие пастельные тона и глубокие вечерние цвета. Выберите до двух оттенков, которые вам близки.',
+    step06CustomLabel: 'Другой оттенок или пожелания',
+    step06CustomOptional: 'Необязательное поле',
+    step06CustomPlaceholder:
+      'Например: холодный светлый оттенок, мягкое сияние или сочетание двух цветов.',
+    step06Disclaimer:
+      'Цвет на экране может отличаться от реального оттенка ткани. Окончательный выбор сделаем по образцам. Наличие нужного оттенка и достаточного количества ткани подтвердим на консультации.',
+    step06Continue: 'Далее: пропорции и посадка',
+    step06SelectHint: 'Выберите оттенок',
+    step06PageFooterBrand: 'MARGO Bridal & Special Occasion',
+    step06PageFooterPlace: 'Onrus, Western Cape, South Africa',
+    step06PageFooterMode: 'В ателье и онлайн',
 
-    step07Badge: 'Шаг 07 · Пропорции и Ощущения',
-    step07Title: 'Как вы хотите себя',
-    step07TitleItalic: 'чувствовать?',
-    step07Subtitle: 'Кутюр ателье создается вокруг вашей естественной осанки, а не шаблонных стандартов.',
-    step07HeightLabel: 'Примерный рост',
-    step07HeightPlaceholder: 'например, 172 см',
-    step07SizeLabel: 'Ориентировочный размер одежды',
-    step07SizeDefault: 'Выберите размер...',
-    step07FitLabel: 'Желаемое ощущение посадки',
-    step07NotesLabel: 'Личные пожелания для закройщика и кутюрье (по желанию)',
-    step07NotesPlaceholder: 'Например, люблю открытую спину, важна свобода движений в танце, акцент на талии...',
-    step07Continue: 'Перейти к Референсам',
+    step07Badge: 'Шаг 07 · Посадка и комфорт',
+    step07Title: 'Что важно для вас',
+    step07TitleItalic: 'в посадке платья?',
+    step07Subtitle:
+      'Подчеркнуть талию, мягко следовать линиям фигуры или оставить больше свободы? Расскажите о своих предпочтениях — это поможет нам подобрать подходящую модель.',
+    step07HeightLabel: 'Ваш рост, см',
+    step07HeightOptional: 'Необязательное поле',
+    step07HeightPlaceholder: 'Например: 165 — без обуви.',
+    step07SizeLabel: 'Ваш обычный размер одежды',
+    step07SizeOptional: 'Необязательное поле',
+    step07SizePlaceholder: 'Выберите размер или «Не знаю».',
+    step07SizeDefault: 'Выберите размер',
+    step07SizeDontKnow: 'Не знаю',
+    step07SizeHint:
+      'Размер поможет нам сориентироваться. Точные мерки и посадку уточним при подготовке заказа.',
+    step07FitLabel: 'Какая посадка вам ближе?',
+    step07FitHint: 'Можно выбрать несколько вариантов.',
+    step07NotesLabel: 'Ваши пожелания',
+    step07NotesOptional: 'Необязательное поле',
+    step07NotesPlaceholder:
+      'Например: хочу носить обычный бюстгальтер, предпочитаю прикрытые руки, важна свобода в области живота или удобство для танцев.',
+    step07Continue: 'Далее: ваши идеи и примеры',
+    step07PageFooterBrand: 'MARGO Bridal & Special Occasion',
+    step07PageFooterPlace: 'Onrus, Western Cape, South Africa',
+    step07PageFooterMode: 'В ателье и онлайн',
 
     step08Badge: 'Шаг 08 · Визуальные Референсы',
     step08Title: 'Мудборд и',
@@ -318,7 +373,9 @@ export const TRANSLATIONS: Record<SupportedLanguage, TranslationDict> = {
     step08UploadTitle: (count) => `Загрузить изображения (${count}/3)`,
     step08UploadSubtitle: 'Перетащите сюда или выберите из галереи устройства.',
     step08UploadLimits: 'JPG, PNG, WebP до 8 МБ',
-    step08CuratedLabel: 'Или добавьте фирменные кутюрные акценты MARGO',
+    step08CuratedLabel: 'Или выберите образы из коллекции',
+    step08GalleryHint: 'До 3 фото. Выбранные добавятся к загрузке.',
+    step08GalleryMax: 'Можно выбрать не больше 3 изображений.',
     step08LinkNotesLabel: 'Ссылка на Pinterest / Instagram или заметки о стиле',
     step08LinkNotesPlaceholder: 'Вставьте ссылку на доску или опишите элементы, которые вам близки...',
     step08Continue: 'Перейти к Приоритетам',
@@ -353,7 +410,7 @@ export const TRANSLATIONS: Record<SupportedLanguage, TranslationDict> = {
     specProportions: 'Размер',
     specFit: 'Посадка',
     specVenue: 'Салон',
-    selectedPalette: 'Выбранная палитра натурального шелка',
+    selectedPalette: 'Выбранная палитра',
     clientPriorities: 'Приоритеты клиента',
     clientReferencesTitle: (count) => `Ваши загруженные референсы (${count})`,
 
@@ -425,11 +482,15 @@ export const TRANSLATIONS: Record<SupportedLanguage, TranslationDict> = {
     stepIndicator: (current, total) => `Step ${String(current).padStart(2, '0')} of ${String(total).padStart(2, '0')}`,
     headerSub: 'Consultation',
 
-    step01Badge: 'Step 01 · Occasion & Setting',
-    step01Title: 'Your distinct',
+    step01Badge: 'Step 01 · Occasion & format',
+    step01Title: 'Your special',
     step01TitleItalic: 'occasion',
-    step01Subtitle: 'Every couture creation begins with the context, light, and atmosphere of your event.',
-    step01Continue: 'Continue to Date & Atmosphere',
+    step01Subtitle:
+      'Every piece begins with the context, light and atmosphere of the upcoming event.',
+    step01PhotoNote:
+      'Images convey mood and style direction. Availability of models and the possibility of making will be confirmed at the consultation.',
+    step01Continue: 'Next: about your event',
+    step01SelectHint: 'Select an occasion',
 
     step02Badge: 'Step 02 · Your Event',
     step02Title: 'When and where is',
@@ -480,32 +541,59 @@ export const TRANSLATIONS: Record<SupportedLanguage, TranslationDict> = {
     step04PageFooterMode: 'In atelier and online',
     step04PageFooterTag: 'Dresses · Fabrics · Accessories',
 
-    step05Badge: 'Step 05 · Style Essence',
-    step05Title: 'Your aesthetic',
-    step05TitleItalic: 'spirit',
-    step05Subtitle: 'Defining the emotional resonance and atmosphere of your couture piece.',
-    step05Continue: 'Continue to Colour Palette',
+    step05Badge: 'Step 05 · Style & Mood',
+    step05Title: 'How do you see',
+    step05TitleItalic: 'your look?',
+    step05Subtitle:
+      'Restrained, romantic, expressive or sensual? Choose one or more directions that feel close to you. We will discuss the details at the consultation.',
+    step05Continue: 'Next: fabrics and colours',
+    step05SelectHint: 'Select a direction',
+    step05PageFooterBrand: 'MARGO Bridal & Special Occasion',
+    step05PageFooterPlace: 'Onrus, Western Cape, South Africa',
+    step05PageFooterMode: 'In atelier and online',
 
-    step06Badge: 'Step 06 · Mediterranean Tones',
-    step06Title: 'Noble fabric',
-    step06TitleItalic: 'palette',
-    step06Subtitle: 'Warm minerals, unbleached silks, and soft Mediterranean shadows. Select up to 2 shades.',
-    step06CustomLabel: 'Custom Swatch Request or Nuance (Optional)',
-    step06CustomPlaceholder: 'e.g. Muted oyster with antique golden reflection, or match my family heirloom lace...',
-    step06Continue: 'Continue to Measurements & Fit',
+    step06Badge: 'Step 06 · Fabrics & Colours',
+    step06Title: 'Palette of',
+    step06TitleItalic: 'your look',
+    step06Subtitle:
+      'Light bridal shades, soft pastels and deep evening colours. Choose up to two tones that feel close to you.',
+    step06CustomLabel: 'Another shade or wishes',
+    step06CustomOptional: 'Optional field',
+    step06CustomPlaceholder:
+      'For example: a cool light shade, a soft glow, or a combination of two colours.',
+    step06Disclaimer:
+      'The colour on screen may differ from the real fabric shade. We will make the final choice from samples. Availability of the tone and enough fabric will be confirmed at the consultation.',
+    step06Continue: 'Next: proportions and fit',
+    step06SelectHint: 'Select a shade',
+    step06PageFooterBrand: 'MARGO Bridal & Special Occasion',
+    step06PageFooterPlace: 'Onrus, Western Cape, South Africa',
+    step06PageFooterMode: 'In atelier and online',
 
-    step07Badge: 'Step 07 · Proportions & Fit',
-    step07Title: 'How do you wish to',
-    step07TitleItalic: 'feel?',
-    step07Subtitle: 'Atelier couture is sculpted around your natural proportions, not standard molds.',
-    step07HeightLabel: 'Height (approx.)',
-    step07HeightPlaceholder: 'e.g. 173 cm / 5\'8"',
-    step07SizeLabel: 'Approximate Sizing',
-    step07SizeDefault: 'Select current size...',
-    step07FitLabel: 'Preferred Fit Sensation',
-    step07NotesLabel: 'Personal Notes for Couturier (Optional)',
-    step07NotesPlaceholder: 'e.g. I love open-back details, need freedom for dancing, prefer natural waistline...',
-    step07Continue: 'Continue to References',
+    step07Badge: 'Step 07 · Fit and comfort',
+    step07Title: 'What matters to you',
+    step07TitleItalic: 'in how the dress fits?',
+    step07Subtitle:
+      'A defined waist, a soft follow of the body, or more ease? Share your preferences — this helps us choose the right model.',
+    step07HeightLabel: 'Your height, cm',
+    step07HeightOptional: 'Optional field',
+    step07HeightPlaceholder: 'For example: 165 — without shoes.',
+    step07SizeLabel: 'Your usual clothing size',
+    step07SizeOptional: 'Optional field',
+    step07SizePlaceholder: 'Choose a size or “Not sure”.',
+    step07SizeDefault: 'Select a size',
+    step07SizeDontKnow: 'Not sure',
+    step07SizeHint:
+      'Size helps us orient. Exact measurements and fit will be refined when preparing the order.',
+    step07FitLabel: 'Which fit feels closer to you?',
+    step07FitHint: 'You can choose several options.',
+    step07NotesLabel: 'Your wishes',
+    step07NotesOptional: 'Optional field',
+    step07NotesPlaceholder:
+      'For example: I want to wear a regular bra, prefer covered arms, need ease around the midsection, or comfort for dancing.',
+    step07Continue: 'Next: your ideas and examples',
+    step07PageFooterBrand: 'MARGO Bridal & Special Occasion',
+    step07PageFooterPlace: 'Onrus, Western Cape, South Africa',
+    step07PageFooterMode: 'In atelier and online',
 
     step08Badge: 'Step 08 · Visual References',
     step08Title: 'Moodboard &',
@@ -514,7 +602,9 @@ export const TRANSLATIONS: Record<SupportedLanguage, TranslationDict> = {
     step08UploadTitle: (count) => `Upload Reference Images (${count}/3)`,
     step08UploadSubtitle: 'Drag & drop here or click to select from your device.',
     step08UploadLimits: 'JPG, PNG, WebP up to 8MB',
-    step08CuratedLabel: 'Or Click to Add Signature Atelier Details',
+    step08CuratedLabel: 'Or choose looks from the collection',
+    step08GalleryHint: 'Up to 3 photos. Selected ones are added to your upload.',
+    step08GalleryMax: 'You can select no more than 3 images.',
     step08LinkNotesLabel: 'Pinterest / Instagram Link or Aesthetic Notes',
     step08LinkNotesPlaceholder: 'Paste Pinterest / Instagram link or describe silhouettes you love...',
     step08Continue: 'Continue to Priorities',
@@ -549,7 +639,7 @@ export const TRANSLATIONS: Record<SupportedLanguage, TranslationDict> = {
     specProportions: 'Proportions',
     specFit: 'Fit Sensation',
     specVenue: 'Venue',
-    selectedPalette: 'Selected Mediterranean Palette',
+    selectedPalette: 'Selected palette',
     clientPriorities: 'Client Priorities',
     clientReferencesTitle: (count) => `Your Uploaded References (${count})`,
 

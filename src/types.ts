@@ -23,7 +23,7 @@ export interface StyleOption {
   name: string;
   subtitle: string;
   description: string;
-  image: string;
+  image?: string;
   moodWords: string[];
 }
 
@@ -55,7 +55,7 @@ export interface PriorityOption {
 export interface ClientMeasurements {
   height: string;
   clothingSize: string;
-  fitPreference: string;
+  fitPreferences: string[];
   notes: string;
 }
 
@@ -87,8 +87,9 @@ export interface ConsultationDossier {
   eventCity: string;
   budget: string;
   silhouette: string[];
-  style: string;
+  style: string[];
   colors: string[];
+  customColorNote: string;
   measurements: ClientMeasurements;
   references: string[];
   referenceNotes: string;

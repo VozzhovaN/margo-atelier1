@@ -1,8 +1,21 @@
-import React, { useRef, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import { motion } from 'motion/react';
-import { Upload, X, Image as ImageIcon, Sparkles, Link2 } from 'lucide-react';
+import { Upload, X, Image as ImageIcon, Link2, Check, ChevronLeft, ChevronRight } from 'lucide-react';
 import { SupportedLanguage, TRANSLATIONS } from '../data/translations';
 import { staggerContainer, microFadeUp, microFadeUpSubtle } from '../utils/motion';
+
+// Carousel-only copies — edits here never affect silhouette/style/occasion pages
+import carouselWelcome from '../assets/images/carousel/margo_welcome_hero.png';
+import carouselBridal from '../assets/images/carousel/margo_occasion_bridal.jpg';
+import carouselEvening from '../assets/images/carousel/margo_occasion_evening.jpg';
+import carouselSpecial from '../assets/images/carousel/margo_occasion_special.png';
+import carouselCustom from '../assets/images/carousel/margo_occasion_custom.jpg';
+import carouselColumn from '../assets/images/carousel/margo_silhouette_column.png';
+import carouselAline from '../assets/images/carousel/margo_silhouette_aline.jpg';
+import carouselCoatdress from '../assets/images/carousel/margo_silhouette_coatdress.jpg';
+import carouselMermaid from '../assets/images/carousel/margo_silhouette_mermaid.jpg';
+import carouselSlipBlack from '../assets/images/carousel/margo_silhouette_slip_black.jpg';
+import carouselFabric from '../assets/images/carousel/margo_fabric_detail_1789726769694.jpg';
 
 interface StepReferencesProps {
   references: string[];
@@ -12,28 +25,24 @@ interface StepReferencesProps {
   lang: SupportedLanguage;
 }
 
-const INSPIRATION_TAGS_LOCALIZED: Record<SupportedLanguage, string[]> = {
-  ru: [
-    'Архитектурный вырез лодочка',
-    'Глубокая чувственная открытая спина',
-    'Струящееся косое скольжение',
-    'Тяжелый шелковый креп Комо',
-    'Съемный шлейф из благородного шелка',
-    'Микроплиссированный шифон',
-    'Минималистичный структурированный кейп',
-    'Мягкая драпировка «качели»',
-  ],
-  en: [
-    'Architectural Boatneck',
-    'Low Sensual Back',
-    'Fluid Bias Slip',
-    'Como Heavy Silk Crêpe',
-    'Detachable Silk Train',
-    'Micro-Pleated Chiffon',
-    'Minimalist Tailored Coat',
-    'Soft Draped Cowl',
-  ],
-};
+interface GalleryItem {
+  id: string;
+  image: string;
+}
+
+const CAROUSEL_IMAGES: GalleryItem[] = [
+  { id: 'welcome', image: carouselWelcome },
+  { id: 'bridal', image: carouselBridal },
+  { id: 'evening', image: carouselEvening },
+  { id: 'special', image: carouselSpecial },
+  { id: 'custom', image: carouselCustom },
+  { id: 'column', image: carouselColumn },
+  { id: 'aline', image: carouselAline },
+  { id: 'slip', image: carouselSlipBlack },
+  { id: 'coatdress', image: carouselCoatdress },
+  { id: 'mermaid', image: carouselMermaid },
+  { id: 'fabric', image: carouselFabric },
+];
 
 export const StepReferences: React.FC<StepReferencesProps> = ({
   references,
@@ -44,9 +53,11 @@ export const StepReferences: React.FC<StepReferencesProps> = ({
 }) => {
   const t = TRANSLATIONS[lang];
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const carouselRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
-  const inspirationTags = INSPIRATION_TAGS_LOCALIZED[lang];
+
+  const galleryItems = useMemo(() => CAROUSEL_IMAGES, []);
 
   const handleFiles = (files: FileList | null) => {
     if (!files || files.length === 0) return;
@@ -54,7 +65,7 @@ export const StepReferences: React.FC<StepReferencesProps> = ({
 
     const availableSlots = 3 - references.length;
     if (availableSlots <= 0) {
-      setUploadError(lang === 'ru' ? 'Максимум 3 изображения.' : 'Maximum of 3 reference images allowed.');
+      setUploadError(t.step08GalleryMax);
       return;
     }
 
@@ -62,11 +73,17 @@ export const StepReferences: React.FC<StepReferencesProps> = ({
 
     filesToProcess.forEach((file) => {
       if (!file.type.startsWith('image/')) {
-        setUploadError(lang === 'ru' ? 'Пожалуйста, выберите формат изображений (JPG, PNG, WebP).' : 'Please select image files only (JPG, PNG, WebP).');
+        setUploadError(
+          lang === 'ru'
+            ? 'Пожалуйста, выберите формат изображений (JPG, PNG, WebP).'
+            : 'Please select image files only (JPG, PNG, WebP).'
+        );
         return;
       }
       if (file.size > 8 * 1024 * 1024) {
-        setUploadError(lang === 'ru' ? 'Размер файла превышает лимит 8 МБ.' : 'File size exceeds 8MB limit.');
+        setUploadError(
+          lang === 'ru' ? 'Размер файла превышает лимит 8 МБ.' : 'File size exceeds 8MB limit.'
+        );
         return;
       }
 
@@ -87,14 +104,27 @@ export const StepReferences: React.FC<StepReferencesProps> = ({
     onUpdate({ references: next, referenceNotes });
   };
 
-  const toggleTag = (tag: string) => {
-    let current = referenceNotes.trim();
-    if (current.includes(tag)) {
-      current = current.replace(tag, '').replace(/,\s*,/g, ',').trim();
-    } else {
-      current = current ? `${current}, ${tag}` : tag;
+  const toggleGalleryImage = (image: string) => {
+    setUploadError(null);
+    if (references.includes(image)) {
+      onUpdate({
+        references: references.filter((r) => r !== image),
+        referenceNotes,
+      });
+      return;
     }
-    onUpdate({ references, referenceNotes: current });
+    if (references.length >= 3) {
+      setUploadError(t.step08GalleryMax);
+      return;
+    }
+    onUpdate({ references: [...references, image], referenceNotes });
+  };
+
+  const scrollCarousel = (direction: 'left' | 'right') => {
+    const el = carouselRef.current;
+    if (!el) return;
+    const amount = Math.min(280, el.clientWidth * 0.75);
+    el.scrollBy({ left: direction === 'left' ? -amount : amount, behavior: 'smooth' });
   };
 
   return (
@@ -102,23 +132,21 @@ export const StepReferences: React.FC<StepReferencesProps> = ({
       variants={staggerContainer(0.05, 0.03)}
       initial="initial"
       animate="animate"
-      className="w-full max-w-xl mx-auto px-4 py-4 flex flex-col"
+      className="w-full max-w-xl mx-auto px-3 sm:px-4 pt-2 sm:pt-4 pb-28 flex flex-col min-w-0"
     >
-      {/* Header */}
-      <motion.div variants={microFadeUp} className="text-center mb-6">
-        <span className="text-[10px] tracking-[0.3em] uppercase text-[#968A7F] block mb-1">
+      <motion.div variants={microFadeUp} className="text-center mb-5 sm:mb-6 px-0.5">
+        <span className="text-[10px] tracking-[0.2em] sm:tracking-[0.3em] uppercase text-[#968A7F] block mb-1">
           {t.step08Badge}
         </span>
-        <h2 className="font-serif text-2xl sm:text-4xl font-light text-[#1A1816] tracking-tight">
+        <h2 className="font-serif text-[1.35rem] sm:text-4xl font-light text-[#1A1816] tracking-tight leading-snug break-words">
           {t.step08Title} <span className="italic font-normal">{t.step08TitleItalic}</span>
         </h2>
-        <p className="text-xs sm:text-sm text-[#706459] mt-1 font-light">
+        <p className="text-xs sm:text-sm text-[#706459] mt-2 font-light leading-relaxed max-w-md mx-auto break-words">
           {t.step08Subtitle}
         </p>
       </motion.div>
 
-      {/* Upload Zone */}
-      <motion.div variants={microFadeUp} className="mb-6">
+      <motion.div variants={microFadeUp} className="mb-5">
         <input
           ref={fileInputRef}
           id="reference-file-input"
@@ -153,24 +181,19 @@ export const StepReferences: React.FC<StepReferencesProps> = ({
           <div className="font-serif text-base text-[#1A1816] font-light">
             {t.step08UploadTitle(references.length)}
           </div>
-          <p className="text-xs text-[#7A6E63] mt-1 font-light">
-            {t.step08UploadSubtitle}
-          </p>
+          <p className="text-xs text-[#7A6E63] mt-1 font-light">{t.step08UploadSubtitle}</p>
           <span className="inline-block mt-2 text-[10px] uppercase tracking-widest text-[#988D82] px-2.5 py-0.5 rounded-full bg-[#EDE6DC]">
             {t.step08UploadLimits}
           </span>
         </div>
 
         {uploadError && (
-          <p className="text-xs text-[#A83D3D] mt-2 text-center font-light">
-            {uploadError}
-          </p>
+          <p className="text-xs text-[#A83D3D] mt-2 text-center font-light">{uploadError}</p>
         )}
       </motion.div>
 
-      {/* Image Preview Grid */}
       {references.length > 0 && (
-        <motion.div variants={microFadeUp} className="mb-6">
+        <motion.div variants={microFadeUp} className="mb-5">
           <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-[#61564C] mb-2.5 flex items-center gap-1.5">
             <ImageIcon className="w-3.5 h-3.5 text-[#8C7D70]" />
             {t.clientReferencesTitle(references.length)}
@@ -178,14 +201,14 @@ export const StepReferences: React.FC<StepReferencesProps> = ({
           <div className="grid grid-cols-3 gap-3">
             {references.map((imgUrl, i) => (
               <div
-                key={i}
+                key={`${imgUrl.slice(0, 48)}-${i}`}
                 className="group relative aspect-[3/4] rounded-xl overflow-hidden border border-[#D9D1C5] bg-[#ECE5DA] shadow-sm"
               >
                 <img
                   src={imgUrl}
-                  alt={`Client Reference ${i + 1}`}
+                  alt={`Reference ${i + 1}`}
                   referrerPolicy="no-referrer"
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-contain object-center"
                 />
                 <button
                   type="button"
@@ -207,36 +230,82 @@ export const StepReferences: React.FC<StepReferencesProps> = ({
         </motion.div>
       )}
 
-      {/* Curated Atelier Inspiration Tags */}
-      <motion.div variants={microFadeUp} className="mb-6 p-4 rounded-2xl bg-[#F6F1EA] border border-[#E9E2D8]">
-        <span className="block text-xs font-medium uppercase tracking-[0.15em] text-[#544B43] mb-2 flex items-center gap-1.5">
-          <Sparkles className="w-3.5 h-3.5 text-[#8C7D70]" />
-          {t.step08CuratedLabel}
-        </span>
-        <div className="flex flex-wrap gap-1.5">
-          {inspirationTags.map((tag) => {
-            const isSelected = referenceNotes.includes(tag);
+      <motion.div variants={microFadeUp} className="mb-5">
+        <div className="flex items-end justify-between gap-3 mb-2 px-0.5">
+          <div className="min-w-0">
+            <span className="block text-xs font-medium uppercase tracking-[0.15em] text-[#544B43]">
+              {t.step08CuratedLabel}
+            </span>
+            <p className="text-[10px] sm:text-[11px] text-[#8A7D71] font-light mt-0.5">
+              {t.step08GalleryHint}
+            </p>
+          </div>
+          <div className="flex items-center gap-1.5 shrink-0">
+            <button
+              type="button"
+              onClick={() => scrollCarousel('left')}
+              className="w-8 h-8 rounded-full border border-[#D9D1C5] bg-[#FAF8F5] text-[#5A4F45] flex items-center justify-center hover:border-[#A89886] transition-colors cursor-pointer"
+              aria-label="Previous"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <button
+              type="button"
+              onClick={() => scrollCarousel('right')}
+              className="w-8 h-8 rounded-full border border-[#D9D1C5] bg-[#FAF8F5] text-[#5A4F45] flex items-center justify-center hover:border-[#A89886] transition-colors cursor-pointer"
+              aria-label="Next"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+
+        <div
+          ref={carouselRef}
+          className="flex gap-3 overflow-x-auto snap-x snap-mandatory pb-2 -mx-0.5 px-0.5"
+          style={{ scrollbarWidth: 'none' }}
+        >
+          {galleryItems.map((item) => {
+            const isSelected = references.includes(item.image);
             return (
               <button
-                key={tag}
+                key={item.id}
                 type="button"
-                onClick={() => toggleTag(tag)}
-                className={`px-2.5 py-1 rounded-full text-[11px] transition-all border cursor-pointer ${
+                onClick={() => toggleGalleryImage(item.image)}
+                className={`relative shrink-0 w-[42%] sm:w-[38%] snap-start rounded-2xl overflow-hidden border cursor-pointer transition-all duration-200 bg-[#F3EEE6] ${
                   isSelected
-                    ? 'bg-[#1A1816] text-[#FAF8F5] border-[#1A1816]'
-                    : 'bg-[#FAF8F5] text-[#5A4F45] border-[#D9D1C5] hover:border-[#A89886]'
+                    ? 'border-[#1A1816] ring-1 ring-[#1A1816] shadow-md'
+                    : 'border-[#E8E1D6] hover:border-[#BDB0A2] shadow-sm'
                 }`}
               >
-                + {tag}
+                <div className="relative aspect-[3/4]">
+                  <img
+                    src={item.image}
+                    alt=""
+                    referrerPolicy="no-referrer"
+                    className="absolute inset-0 w-full h-full object-contain object-center"
+                  />
+                  <div
+                    className={`absolute top-2 right-2 w-6 h-6 rounded-full flex items-center justify-center border transition-all ${
+                      isSelected
+                        ? 'bg-[#1A1816] border-[#1A1816] text-[#FAF8F5]'
+                        : 'bg-[#FAF8F5]/90 border-[#D9D1C5] text-transparent'
+                    }`}
+                  >
+                    {isSelected && <Check className="w-3.5 h-3.5" />}
+                  </div>
+                </div>
               </button>
             );
           })}
         </div>
       </motion.div>
 
-      {/* Reference Notes or Board Link */}
-      <motion.div variants={microFadeUp} className="mb-8">
-        <label htmlFor="ref-notes-input" className="block text-xs font-medium uppercase tracking-[0.15em] text-[#544B43] mb-1.5 flex items-center gap-1.5">
+      <motion.div variants={microFadeUp} className="mb-6">
+        <label
+          htmlFor="ref-notes-input"
+          className="block text-xs font-medium uppercase tracking-[0.15em] text-[#544B43] mb-1.5 flex items-center gap-1.5"
+        >
           <Link2 className="w-3.5 h-3.5 text-[#8C7D70]" />
           {t.step08LinkNotesLabel}
         </label>
@@ -250,13 +319,12 @@ export const StepReferences: React.FC<StepReferencesProps> = ({
         />
       </motion.div>
 
-      {/* Navigation Footer */}
       <motion.div variants={microFadeUpSubtle} className="sticky bottom-4 z-20 w-full pt-2">
         <button
           id="references-continue-btn"
           type="button"
           onClick={onNext}
-          className="w-full py-3.5 px-6 rounded-full text-xs sm:text-sm font-medium tracking-[0.2em] uppercase transition-all duration-200 shadow-md bg-[#1A1816] text-[#FAF8F5] hover:bg-[#2C2723] active:scale-[0.99] cursor-pointer"
+          className="w-full py-3.5 px-4 sm:px-6 rounded-full text-[10px] sm:text-sm font-medium tracking-[0.14em] sm:tracking-[0.2em] uppercase transition-all duration-200 shadow-md bg-[#1A1816] text-[#FAF8F5] hover:bg-[#2C2723] active:scale-[0.99] cursor-pointer"
         >
           {t.step08Continue}
         </button>
@@ -264,4 +332,3 @@ export const StepReferences: React.FC<StepReferencesProps> = ({
     </motion.div>
   );
 };
-
