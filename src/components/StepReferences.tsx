@@ -15,7 +15,7 @@ import carouselAline from '../assets/images/carousel/margo_silhouette_aline.jpg'
 import carouselCoatdress from '../assets/images/carousel/margo_silhouette_coatdress.jpg';
 import carouselMermaid from '../assets/images/carousel/margo_silhouette_mermaid.jpg';
 import carouselSlipBlack from '../assets/images/carousel/margo_silhouette_slip_black.jpg';
-import carouselFabric from '../assets/images/carousel/margo_fabric_detail_1789726769694.jpg';
+import carouselFabric from '../assets/images/carousel/margo_fabric_sage_drape.png';
 import carouselQuietLuxury from '../assets/images/carousel/margo_style_quiet_luxury.jpg';
 import carouselContemporaryRomantic from '../assets/images/carousel/margo_style_contemporary_romantic.jpg';
 import carouselSculptural from '../assets/images/carousel/margo_style_sculptural.jpg';
