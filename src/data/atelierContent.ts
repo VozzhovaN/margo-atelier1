@@ -4,13 +4,14 @@ import {
 import { SupportedLanguage } from './translations';
 
 // Campaign Assets
-import eveningImg from '../assets/images/margo_evening_editorial_1789726710943.jpg';
-import specialOccasionImg from '../assets/images/margo_special_occasion_1789726725864.jpg';
-import customDressImg from '../assets/images/margo_custom_dress_1789726740808.jpg';
 import occasionBridalImg from '../assets/images/margo_occasion_bridal.jpg';
 import occasionEveningImg from '../assets/images/margo_occasion_evening.jpg';
 import occasionSpecialImg from '../assets/images/margo_occasion_special.png';
 import occasionCustomImg from '../assets/images/margo_occasion_custom.jpg';
+import styleQuietLuxuryImg from '../assets/images/margo_style_quiet_luxury.jpg';
+import styleContemporaryRomanticImg from '../assets/images/margo_style_contemporary_romantic.jpg';
+import styleSculpturalImg from '../assets/images/margo_style_sculptural.jpg';
+import styleSensualSirenImg from '../assets/images/margo_style_sensual_siren.jpg';
 import columnImg from '../assets/images/margo_silhouette_column.png';
 import alineImg from '../assets/images/margo_silhouette_aline.jpg';
 import slipImg from '../assets/images/margo_silhouette_slip.png';
@@ -274,7 +275,7 @@ export const STYLES_DATA: LocalizedStyle[] = [
       ru: 'Чистые линии, продуманная посадка и минимум декора. Красота образа раскрывается в силуэте, фактуре ткани и аккуратных деталях.',
       en: 'Clean lines, thoughtful fit and minimal decoration. The beauty of the look comes through in the silhouette, fabric texture and careful details.',
     },
-    image: columnImg,
+    image: styleQuietLuxuryImg,
     moodWords: {
       ru: ['Чистые линии', 'Минимум декора', 'Выразительная фактура', 'Сдержанная элегантность'],
       en: ['Clean lines', 'Minimal decoration', 'Expressive texture', 'Restrained elegance'],
@@ -294,7 +295,7 @@ export const STYLES_DATA: LocalizedStyle[] = [
       ru: 'Мягкие драпировки, плавные линии и деликатные детали. Женственный образ, который может быть как лёгким и воздушным, так и более собранным — в зависимости от выбранной ткани.',
       en: 'Soft draping, fluid lines and delicate details. A feminine look that can feel light and airy or more composed — depending on the chosen fabric.',
     },
-    image: customDressImg,
+    image: styleContemporaryRomanticImg,
     moodWords: {
       ru: ['Мягкие складки', 'Плавные линии', 'Нежные детали', 'Лёгкость движения'],
       en: ['Soft folds', 'Fluid lines', 'Gentle details', 'Ease of movement'],
@@ -314,7 +315,7 @@ export const STYLES_DATA: LocalizedStyle[] = [
       ru: 'Чёткие линии, необычные пропорции и продуманный объём. Асимметрия, выразительные складки или структурированные детали делают образ современным и запоминающимся.',
       en: 'Clear lines, unusual proportions and considered volume. Asymmetry, expressive folds or structured details make the look contemporary and memorable.',
     },
-    image: specialOccasionImg,
+    image: styleSculpturalImg,
     moodWords: {
       ru: ['Асимметрия', 'Чёткие линии', 'Продуманный объём', 'Выразительные детали'],
       en: ['Asymmetry', 'Clear lines', 'Considered volume', 'Expressive details'],
@@ -334,7 +335,7 @@ export const STYLES_DATA: LocalizedStyle[] = [
       ru: 'Струящаяся ткань и мягкое прилегание к фигуре. Открытая спина, тонкие бретели или разрез могут стать акцентом — вы выбираете комфортную для себя степень открытости.',
       en: 'Fluid fabric and a soft fit to the figure. An open back, thin straps or a slit can become the accent — you choose the level of openness that feels comfortable.',
     },
-    image: eveningImg,
+    image: styleSensualSirenImg,
     moodWords: {
       ru: ['Струящаяся ткань', 'Мягкое прилегание', 'Открытые детали — по желанию', 'Лаконичный силуэт'],
       en: ['Fluid fabric', 'Soft fit', 'Open details — optional', 'Laconic silhouette'],

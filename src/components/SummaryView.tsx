@@ -130,6 +130,18 @@ export const SummaryView: React.FC<SummaryViewProps> = ({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...dossier,
+          silhouetteLabel:
+            silhouetteLabel === (lang === 'ru' ? 'Не выбран' : 'Not selected')
+              ? ''
+              : silhouetteLabel,
+          styleLabel:
+            styleLabel === (lang === 'ru' ? 'Не выбран' : 'Not selected') ? '' : styleLabel,
+          colourLabel:
+            colourLabel === (lang === 'ru' ? 'Не выбран' : 'Not selected') ? '' : colourLabel,
+          colors:
+            colourLabel === (lang === 'ru' ? 'Не выбран' : 'Not selected')
+              ? []
+              : colourItems.map((c) => c.name),
           aiStyleDirection: aiDirection,
         }),
       });

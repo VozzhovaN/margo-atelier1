@@ -1,39 +1,69 @@
 import React, { useState, useEffect } from 'react';
 import {
   Users,
-  Calendar,
   MessageCircle,
   Send,
   Sparkles,
-  ExternalLink,
   ChevronDown,
   ChevronUp,
-  Clock,
   MapPin,
   RefreshCw,
   Search,
-  Filter,
+  Lock,
 } from 'lucide-react';
 import { ConsultationDossier } from '../types';
 import { SupportedLanguage, TRANSLATIONS } from '../data/translations';
+
+const ADMIN_TOKEN_KEY = 'margo_admin_token';
 
 interface AtelierDashboardProps {
   onBackToApp: () => void;
   lang?: SupportedLanguage;
 }
 
+function authHeaders(token: string): HeadersInit {
+  return {
+    Authorization: `Bearer ${token}`,
+    'Content-Type': 'application/json',
+  };
+}
+
 export const AtelierDashboard: React.FC<AtelierDashboardProps> = ({ onBackToApp, lang = 'ru' }) => {
   const t = TRANSLATIONS[lang];
+  const [token, setToken] = useState<string | null>(() => {
+    try {
+      return sessionStorage.getItem(ADMIN_TOKEN_KEY);
+    } catch {
+      return null;
+    }
+  });
+  const [password, setPassword] = useState('');
+  const [loginError, setLoginError] = useState<string | null>(null);
+  const [loggingIn, setLoggingIn] = useState(false);
+
   const [consultations, setConsultations] = useState<ConsultationDossier[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [activeFilter, setActiveFilter] = useState<'all' | 'new' | 'scheduled' | 'fitting'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  const fetchConsultations = async () => {
+  const fetchConsultations = async (authToken = token) => {
+    if (!authToken) return;
     setLoading(true);
     try {
-      const res = await fetch('/api/consultations');
+      const res = await fetch('/api/consultations', {
+        headers: { Authorization: `Bearer ${authToken}` },
+      });
+      if (res.status === 401 || res.status === 503) {
+        setToken(null);
+        try {
+          sessionStorage.removeItem(ADMIN_TOKEN_KEY);
+        } catch {
+          // ignore
+        }
+        setLoginError(t.adminLoginError);
+        return;
+      }
       if (res.ok) {
         const data = await res.json();
         setConsultations(data.consultations || []);
@@ -46,20 +76,58 @@ export const AtelierDashboard: React.FC<AtelierDashboardProps> = ({ onBackToApp,
   };
 
   useEffect(() => {
-    fetchConsultations();
-  }, []);
+    if (token) fetchConsultations(token);
+  }, [token]);
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoggingIn(true);
+    setLoginError(null);
+    try {
+      const res = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.token) {
+        setLoginError(data.error || t.adminLoginError);
+        return;
+      }
+      try {
+        sessionStorage.setItem(ADMIN_TOKEN_KEY, data.token);
+      } catch {
+        // ignore
+      }
+      setToken(data.token);
+      setPassword('');
+    } catch {
+      setLoginError(t.adminLoginError);
+    } finally {
+      setLoggingIn(false);
+    }
+  };
+
+  const handleLogout = () => {
+    setToken(null);
+    setConsultations([]);
+    try {
+      sessionStorage.removeItem(ADMIN_TOKEN_KEY);
+    } catch {
+      // ignore
+    }
+  };
 
   const updateStatus = async (id: string, status: any) => {
+    if (!token) return;
     try {
       const res = await fetch(`/api/consultations/${id}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders(token),
         body: JSON.stringify({ status }),
       });
       if (res.ok) {
-        setConsultations((prev) =>
-          prev.map((c) => (c.id === id ? { ...c, status } : c))
-        );
+        setConsultations((prev) => prev.map((c) => (c.id === id ? { ...c, status } : c)));
       }
     } catch (err) {
       console.error('Failed to update status:', err);
@@ -72,19 +140,57 @@ export const AtelierDashboard: React.FC<AtelierDashboardProps> = ({ onBackToApp,
       const q = searchQuery.toLowerCase();
       const matchName = c.contact?.fullName?.toLowerCase().includes(q);
       const matchId = c.id?.toLowerCase().includes(q);
-      const matchOccasion = c.occasion?.toLowerCase().includes(q);
+      const matchOccasion = String(c.occasion || '').toLowerCase().includes(q);
       return matchName || matchId || matchOccasion;
     }
     return true;
   });
 
-  const toggleExpand = (id: string) => {
-    setExpandedId(expandedId === id ? null : id);
-  };
+  if (!token) {
+    return (
+      <div className="w-full max-w-md mx-auto px-4 py-16">
+        <div className="rounded-2xl border border-[#E8E1D6] bg-[#FAF8F5] p-6 shadow-sm">
+          <div className="flex items-center gap-2 mb-2">
+            <Lock className="w-4 h-4 text-[#8C7D70]" />
+            <span className="text-[10px] uppercase tracking-[0.2em] text-[#7D7267]">{t.dashConsoleBadge}</span>
+          </div>
+          <h1 className="font-serif text-2xl font-light text-[#1A1816] mb-1">{t.adminLoginTitle}</h1>
+          <p className="text-xs text-[#706459] font-light mb-5">{t.adminLoginHint}</p>
+          <form onSubmit={handleLogin} className="space-y-3">
+            <label className="block text-[11px] uppercase tracking-[0.15em] text-[#544B43]">
+              {t.adminPasswordLabel}
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder={t.adminPasswordPlaceholder}
+                className="mt-1.5 w-full px-3.5 py-2.5 rounded-xl bg-[#F6F1EA] border border-[#D9D1C5] text-sm text-[#1A1816] focus:outline-none focus:ring-1 focus:ring-[#1A1816]"
+                autoFocus
+              />
+            </label>
+            {loginError && <p className="text-xs text-[#A83D3D]">{loginError}</p>}
+            <button
+              type="submit"
+              disabled={loggingIn || !password}
+              className="w-full py-3 rounded-full bg-[#1A1816] text-[#FAF8F5] text-xs uppercase tracking-[0.18em] disabled:bg-[#E5DDD2] disabled:text-[#9E9488]"
+            >
+              {t.adminLoginBtn}
+            </button>
+          </form>
+          <button
+            type="button"
+            onClick={onBackToApp}
+            className="w-full mt-3 py-2.5 text-xs uppercase tracking-[0.14em] text-[#867B71] hover:text-[#1A1816]"
+          >
+            {t.dashBackBtn}
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full max-w-4xl mx-auto px-4 py-6">
-      {/* Top Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-[#E8E1D6]">
         <div>
           <div className="flex items-center gap-2">
@@ -101,14 +207,20 @@ export const AtelierDashboard: React.FC<AtelierDashboardProps> = ({ onBackToApp,
         <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={fetchConsultations}
+            onClick={() => fetchConsultations()}
             disabled={loading}
             className="p-2 rounded-xl border border-[#D9D1C5] bg-[#FAF8F5] text-[#54493F] hover:bg-[#EFE9E0] transition-colors"
-            title="Refresh Dossiers"
+            title="Refresh"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
           </button>
-
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="px-3 py-2 rounded-xl border border-[#D9D1C5] text-xs uppercase tracking-wider text-[#54493F] hover:bg-[#EFE9E0]"
+          >
+            {t.adminLogoutBtn}
+          </button>
           <button
             type="button"
             onClick={onBackToApp}
@@ -119,36 +231,25 @@ export const AtelierDashboard: React.FC<AtelierDashboardProps> = ({ onBackToApp,
         </div>
       </div>
 
-      {/* Metrics Row */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 my-6">
         <div className="p-3.5 rounded-2xl bg-[#FAF8F5] border border-[#E8E1D6]">
-          <span className="text-[10px] uppercase tracking-wider text-[#8A7D71] block font-medium">
-            {t.dashTotal}
-          </span>
-          <div className="font-serif text-2xl font-light text-[#1A1816] mt-1">
-            {consultations.length}
-          </div>
+          <span className="text-[10px] uppercase tracking-wider text-[#8A7D71] block font-medium">{t.dashTotal}</span>
+          <div className="font-serif text-2xl font-light text-[#1A1816] mt-1">{consultations.length}</div>
         </div>
         <div className="p-3.5 rounded-2xl bg-[#FAF8F5] border border-[#E8E1D6]">
-          <span className="text-[10px] uppercase tracking-wider text-[#8A7D71] block font-medium">
-            {t.dashNew}
-          </span>
+          <span className="text-[10px] uppercase tracking-wider text-[#8A7D71] block font-medium">{t.dashNew}</span>
           <div className="font-serif text-2xl font-light text-[#A86430] mt-1">
             {consultations.filter((c) => c.status === 'new').length}
           </div>
         </div>
         <div className="p-3.5 rounded-2xl bg-[#FAF8F5] border border-[#E8E1D6]">
-          <span className="text-[10px] uppercase tracking-wider text-[#8A7D71] block font-medium">
-            {t.dashScheduled}
-          </span>
+          <span className="text-[10px] uppercase tracking-wider text-[#8A7D71] block font-medium">{t.dashScheduled}</span>
           <div className="font-serif text-2xl font-light text-[#2E7A4C] mt-1">
             {consultations.filter((c) => c.status === 'scheduled').length}
           </div>
         </div>
         <div className="p-3.5 rounded-2xl bg-[#FAF8F5] border border-[#E8E1D6]">
-          <span className="text-[10px] uppercase tracking-wider text-[#8A7D71] block font-medium">
-            {t.dashTgSync}
-          </span>
+          <span className="text-[10px] uppercase tracking-wider text-[#8A7D71] block font-medium">{t.dashTgSync}</span>
           <div className="flex items-center gap-1.5 text-xs text-[#205A32] mt-2 font-medium">
             <span className="w-2 h-2 rounded-full bg-[#205A32] animate-pulse" />
             {t.dashConnected}
@@ -156,9 +257,7 @@ export const AtelierDashboard: React.FC<AtelierDashboardProps> = ({ onBackToApp,
         </div>
       </div>
 
-      {/* Filters & Search */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mb-6">
-        {/* Search */}
         <div className="relative w-full sm:w-64">
           <Search className="w-3.5 h-3.5 text-[#8A7D71] absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
@@ -169,18 +268,16 @@ export const AtelierDashboard: React.FC<AtelierDashboardProps> = ({ onBackToApp,
             className="w-full pl-9 pr-3.5 py-2 rounded-xl bg-[#FAF8F5] border border-[#D9D1C5] text-xs text-[#1A1816] focus:outline-none focus:ring-1 focus:ring-[#1A1816]"
           />
         </div>
-
-        {/* Filter Pills */}
         <div className="flex items-center gap-1.5 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0">
           {(['all', 'new', 'scheduled', 'fitting'] as const).map((tab) => {
             const label =
               tab === 'all'
                 ? t.dashFilterAll
                 : tab === 'new'
-                ? t.dashFilterNew
-                : tab === 'scheduled'
-                ? t.dashFilterScheduled
-                : t.dashFilterFitting;
+                  ? t.dashFilterNew
+                  : tab === 'scheduled'
+                    ? t.dashFilterScheduled
+                    : t.dashFilterFitting;
             return (
               <button
                 key={tab}
@@ -199,40 +296,45 @@ export const AtelierDashboard: React.FC<AtelierDashboardProps> = ({ onBackToApp,
         </div>
       </div>
 
-      {/* Dossiers List */}
       <div className="space-y-4">
         {filtered.length === 0 ? (
           <div className="p-12 text-center rounded-2xl bg-[#FAF8F5] border border-[#E8E1D6]">
             <Users className="w-8 h-8 text-[#B8AA99] mx-auto mb-2" />
-            <div className="font-serif text-lg font-light text-[#1A1816]">
-              {t.dashNoDossiers}
-            </div>
-            <p className="text-xs text-[#867B71] mt-1">
-              {t.dashNoDossiersSub}
-            </p>
+            <div className="font-serif text-lg font-light text-[#1A1816]">{t.dashNoDossiers}</div>
+            <p className="text-xs text-[#867B71] mt-1">{t.dashNoDossiersSub}</p>
           </div>
         ) : (
           filtered.map((item) => {
             const isExpanded = expandedId === item.id;
+            const silhouette =
+              typeof item.silhouette === 'string'
+                ? item.silhouette
+                : Array.isArray(item.silhouette)
+                  ? item.silhouette.join(', ')
+                  : '';
+            const style =
+              typeof item.style === 'string'
+                ? item.style
+                : Array.isArray(item.style)
+                  ? item.style.join(', ')
+                  : '';
             return (
               <div
                 key={item.id}
                 className="rounded-2xl bg-[#FAF8F5] border border-[#E8E1D6] overflow-hidden transition-all shadow-sm"
               >
-                {/* Header Card Row */}
                 <div
-                  onClick={() => toggleExpand(item.id!)}
+                  onClick={() => setExpandedId(isExpanded ? null : item.id || null)}
                   className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 cursor-pointer hover:bg-[#F7F2EB] transition-colors"
                 >
                   <div className="flex items-start sm:items-center gap-3">
                     <div className="w-9 h-9 rounded-xl bg-[#EFE9E0] flex items-center justify-center font-serif text-sm font-medium text-[#1A1816] shrink-0 border border-[#DFD6C9]">
-                      {item.contact.fullName ? item.contact.fullName.charAt(0) : 'M'}
+                      {item.contact?.fullName ? item.contact.fullName.charAt(0) : 'M'}
                     </div>
-
                     <div>
                       <div className="flex items-center gap-2">
                         <span className="font-serif text-base sm:text-lg font-medium text-[#1A1816]">
-                          {item.contact.fullName || 'Private Client'}
+                          {item.contact?.fullName || 'Private Client'}
                         </span>
                         <span className="font-mono text-[10px] text-[#8C7E72] px-2 py-0.5 rounded bg-[#EFE8DF]">
                           {item.id}
@@ -247,43 +349,33 @@ export const AtelierDashboard: React.FC<AtelierDashboardProps> = ({ onBackToApp,
                       </div>
                     </div>
                   </div>
-
                   <div className="flex items-center justify-between sm:justify-end gap-3 pt-2 sm:pt-0 border-t sm:border-t-0 border-[#EFE9E0]">
-                    {/* Status Badge */}
                     <span
                       className={`text-[10px] uppercase tracking-wider px-2.5 py-1 rounded-full font-medium ${
                         item.status === 'new'
                           ? 'bg-[#FBEEDC] text-[#8C5319] border border-[#EACCA4]'
                           : item.status === 'scheduled'
-                          ? 'bg-[#E3F2E7] text-[#1E6B39] border border-[#BEE0C8]'
-                          : 'bg-[#EFE8DF] text-[#61564C]'
+                            ? 'bg-[#E3F2E7] text-[#1E6B39] border border-[#BEE0C8]'
+                            : 'bg-[#EFE8DF] text-[#61564C]'
                       }`}
                     >
                       {item.status || 'new'}
                     </span>
-
-                    <button
-                      type="button"
-                      className="p-1 rounded-lg text-[#8C7E72] hover:text-[#1A1816]"
-                    >
-                      {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                    </button>
+                    {isExpanded ? <ChevronUp className="w-4 h-4 text-[#8C7E72]" /> : <ChevronDown className="w-4 h-4 text-[#8C7E72]" />}
                   </div>
                 </div>
 
-                {/* Expanded Details Panel */}
                 {isExpanded && (
                   <div className="p-5 border-t border-[#E8E1D6] bg-[#F9F5EE] space-y-5">
-                    {/* Contacts & Direct Reach-out */}
                     <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-xl bg-[#FAF8F5] border border-[#E5DFD6]">
                       <div className="flex flex-wrap items-center gap-4 text-xs text-[#52473D]">
-                        {item.contact.telegramHandle && (
+                        {item.contact?.telegramHandle && (
                           <span className="flex items-center gap-1 font-mono">
                             <Send className="w-3.5 h-3.5 text-[#398256]" />
                             {item.contact.telegramHandle}
                           </span>
                         )}
-                        {item.contact.whatsappPhone && (
+                        {item.contact?.whatsappPhone && (
                           <span className="flex items-center gap-1 font-mono">
                             <MessageCircle className="w-3.5 h-3.5 text-[#25D366]" />
                             {item.contact.whatsappPhone}
@@ -291,29 +383,27 @@ export const AtelierDashboard: React.FC<AtelierDashboardProps> = ({ onBackToApp,
                         )}
                         <span className="flex items-center gap-1">
                           <MapPin className="w-3.5 h-3.5 text-[#8C7E72]" />
-                          {item.contact.atelierLocation}
+                          {item.contact?.atelierLocation}
                         </span>
                       </div>
-
-                      {/* Quick Communication CTAs */}
                       <div className="flex items-center gap-2">
-                        {item.contact.whatsappPhone && (
+                        {item.contact?.whatsappPhone && (
                           <a
                             href={`https://wa.me/${item.contact.whatsappPhone.replace(/[^0-9]/g, '')}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="px-3 py-1.5 rounded-lg bg-[#25D366] text-white text-[11px] font-medium tracking-wider uppercase flex items-center gap-1 hover:bg-[#1EBE5A]"
+                            className="px-3 py-1.5 rounded-lg bg-[#25D366] text-white text-[11px] font-medium tracking-wider uppercase flex items-center gap-1"
                           >
                             <MessageCircle className="w-3 h-3" />
                             WhatsApp
                           </a>
                         )}
-                        {item.contact.telegramHandle && (
+                        {item.contact?.telegramHandle && (
                           <a
                             href={`https://t.me/${item.contact.telegramHandle.replace('@', '')}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="px-3 py-1.5 rounded-lg bg-[#229ED9] text-white text-[11px] font-medium tracking-wider uppercase flex items-center gap-1 hover:bg-[#1C8BC0]"
+                            className="px-3 py-1.5 rounded-lg bg-[#229ED9] text-white text-[11px] font-medium tracking-wider uppercase flex items-center gap-1"
                           >
                             <Send className="w-3 h-3" />
                             Telegram
@@ -322,108 +412,112 @@ export const AtelierDashboard: React.FC<AtelierDashboardProps> = ({ onBackToApp,
                       </div>
                     </div>
 
-                    {/* Gemini AI Style Direction Card */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                      <div className="p-3 rounded-xl bg-[#FAF8F5] border border-[#E5DFD6]">
+                        <span className="text-[10px] uppercase tracking-wider text-[#8A7D71] block">Силуэт и стиль</span>
+                        <div className="font-medium text-[#1A1816] mt-0.5">{silhouette || '—'}</div>
+                        <div className="text-[#6B5F54] mt-0.5">{style || '—'}</div>
+                      </div>
+                      <div className="p-3 rounded-xl bg-[#FAF8F5] border border-[#E5DFD6]">
+                        <span className="text-[10px] uppercase tracking-wider text-[#8A7D71] block">Цвета</span>
+                        <div className="font-medium text-[#1A1816] mt-0.5">
+                          {Array.isArray(item.colors) && item.colors.length > 0 ? item.colors.join(', ') : '—'}
+                        </div>
+                        {item.customColorNote && (
+                          <div className="text-[#6B5F54] mt-0.5">{item.customColorNote}</div>
+                        )}
+                      </div>
+                      <div className="p-3 rounded-xl bg-[#FAF8F5] border border-[#E5DFD6]">
+                        <span className="text-[10px] uppercase tracking-wider text-[#8A7D71] block">Посадка</span>
+                        <div className="font-medium text-[#1A1816] mt-0.5">
+                          {item.measurements?.clothingSize || '—'} · {item.measurements?.height || '—'}
+                        </div>
+                        <div className="text-[#6B5F54] mt-0.5">
+                          {Array.isArray(item.measurements?.fitPreferences) &&
+                          item.measurements.fitPreferences.length > 0
+                            ? item.measurements.fitPreferences.join(', ')
+                            : '—'}
+                        </div>
+                        {item.measurements?.notes && (
+                          <div className="text-[#6B5F54] mt-1">{item.measurements.notes}</div>
+                        )}
+                      </div>
+                      <div className="p-3 rounded-xl bg-[#FAF8F5] border border-[#E5DFD6]">
+                        <span className="text-[10px] uppercase tracking-wider text-[#8A7D71] block">Приоритеты / событие</span>
+                        <div className="text-[#6B5F54] mt-0.5">
+                          {Array.isArray(item.priorities) && item.priorities.length > 0
+                            ? item.priorities.join(', ')
+                            : '—'}
+                        </div>
+                        <div className="text-[#6B5F54] mt-1">
+                          {[...(item.settings || []), item.settingOther, item.eventCity]
+                            .filter(Boolean)
+                            .join(' · ') || '—'}
+                        </div>
+                        {item.consentAccepted && (
+                          <div className="text-[10px] text-[#2E7A4C] mt-1">
+                            Согласие: да · {item.consentVersion || '—'}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
                     {item.aiStyleDirection && (
                       <div className="p-4 rounded-xl bg-[#1A1816] text-[#FAF8F5] space-y-2.5">
                         <div className="flex items-center gap-2 text-[#D8CEBF] text-xs font-medium uppercase tracking-widest">
                           <Sparkles className="w-3.5 h-3.5" />
-                          <span>Gemini AI Style Direction</span>
+                          <span>AI Style Direction</span>
                         </div>
-                        <h4 className="font-serif text-lg font-light italic text-[#FAF8F5]">
+                        <h4 className="font-serif text-lg font-light italic">
                           “{item.aiStyleDirection.headline}”
                         </h4>
                         <p className="text-xs text-[#D8CEBF] font-light leading-relaxed">
                           {item.aiStyleDirection.concept}
                         </p>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-white/10 text-xs text-[#EAE2D8]">
-                          <div>
-                            <span className="text-[10px] text-[#A89886] uppercase tracking-wider block mb-1">
-                              Recommended Fabrics
-                            </span>
-                            <ul className="space-y-1">
-                              {item.aiStyleDirection.recommendedFabrics?.map((fab, i) => (
-                                <li key={i}>• {fab}</li>
-                              ))}
-                            </ul>
-                          </div>
-                          <div>
-                            <span className="text-[10px] text-[#A89886] uppercase tracking-wider block mb-1">
-                              Consultation Focus
-                            </span>
-                            <ul className="space-y-1">
-                              {item.aiStyleDirection.consultationFocus?.map((foc, i) => (
-                                <li key={i}>• {foc}</li>
-                              ))}
-                            </ul>
-                          </div>
-                        </div>
                       </div>
                     )}
 
-                    {/* Detailed Specifications */}
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-                      <div className="p-3 rounded-xl bg-[#FAF8F5] border border-[#E5DFD6]">
-                        <span className="text-[10px] uppercase tracking-wider text-[#8A7D71] block">Silhouette & Style</span>
-                        <div className="font-medium text-[#1A1816] mt-0.5">{item.silhouette}</div>
-                        <div className="text-[#6B5F54] mt-0.5">{item.style}</div>
-                      </div>
-
-                      <div className="p-3 rounded-xl bg-[#FAF8F5] border border-[#E5DFD6]">
-                        <span className="text-[10px] uppercase tracking-wider text-[#8A7D71] block">Measurements & Fit</span>
-                        <div className="font-medium text-[#1A1816] mt-0.5">
-                          {item.measurements?.clothingSize === 'dont_know'
-                            ? lang === 'ru'
-                              ? 'Не знаю'
-                              : 'Not sure'
-                            : item.measurements?.clothingSize || 'Bespoke'}{' '}
-                          · {item.measurements?.height || 'N/A'}
-                        </div>
-                        <div className="text-[#6B5F54] mt-0.5">
-                          {Array.isArray(item.measurements?.fitPreferences) &&
-                          item.measurements.fitPreferences.length > 0
-                            ? item.measurements.fitPreferences
-                                .map((id) => {
-                                  const map: Record<string, string> = {
-                                    defined_waist: lang === 'ru' ? 'Подчёркнутая талия' : 'Defined waist',
-                                    soft_contour: lang === 'ru' ? 'Мягкое облегание' : 'Soft contour',
-                                    defined_shape: lang === 'ru' ? 'Чёткая форма' : 'Defined shape',
-                                    ease_of_movement: lang === 'ru' ? 'Свобода движений' : 'Ease of movement',
-                                    need_help: lang === 'ru' ? 'Нужна помощь' : 'Need help',
-                                  };
-                                  return map[id] || id;
-                                })
-                                .join(', ')
-                            : '—'}
-                        </div>
-                      </div>
-
-                      <div className="p-3 rounded-xl bg-[#FAF8F5] border border-[#E5DFD6]">
-                        <span className="text-[10px] uppercase tracking-wider text-[#8A7D71] block">Status Control</span>
-                        <select
-                          value={item.status || 'new'}
-                          onChange={(e) => updateStatus(item.id!, e.target.value)}
-                          className="mt-1 w-full px-2.5 py-1.5 rounded-lg bg-[#F6F1EA] border border-[#D9D1C5] text-xs font-medium text-[#1A1816]"
-                        >
-                          <option value="new">{t.statusNew}</option>
-                          <option value="contacted">{t.statusContacted}</option>
-                          <option value="scheduled">{t.statusScheduled}</option>
-                          <option value="fitting">{t.statusFitting}</option>
-                          <option value="completed">{t.statusCompleted}</option>
-                        </select>
-                      </div>
+                    <div className="p-3 rounded-xl bg-[#FAF8F5] border border-[#E5DFD6]">
+                      <span className="text-[10px] uppercase tracking-wider text-[#8A7D71] block mb-1">Статус</span>
+                      <select
+                        value={item.status || 'new'}
+                        onChange={(e) => updateStatus(item.id!, e.target.value)}
+                        className="w-full px-2.5 py-1.5 rounded-lg bg-[#F6F1EA] border border-[#D9D1C5] text-xs font-medium text-[#1A1816]"
+                      >
+                        <option value="new">{t.statusNew}</option>
+                        <option value="contacted">{t.statusContacted}</option>
+                        <option value="scheduled">{t.statusScheduled}</option>
+                        <option value="fitting">{t.statusFitting}</option>
+                        <option value="completed">{t.statusCompleted}</option>
+                      </select>
                     </div>
 
-                    {/* Uploaded References */}
+                    {item.referenceNotes && (
+                      <div className="text-xs text-[#63574D]">
+                        <span className="text-[10px] uppercase tracking-wider text-[#8A7D71] block mb-1">
+                          Заметки к референсам
+                        </span>
+                        {item.referenceNotes}
+                      </div>
+                    )}
+
                     {item.references && item.references.length > 0 && (
                       <div>
                         <span className="text-[10px] font-medium uppercase tracking-wider text-[#8A7D71] block mb-2">
-                          Client Uploaded Reference Images ({item.references.length})
+                          Фото-референсы ({item.references.length})
                         </span>
                         <div className="grid grid-cols-3 gap-2.5">
                           {item.references.map((img, i) => (
-                            <div key={i} className="aspect-[3/4] rounded-xl overflow-hidden border border-[#D9D1C5] bg-[#ECE5DA]">
-                              <img src={img} alt={`Reference ${i + 1}`} referrerPolicy="no-referrer" className="w-full h-full object-contain object-center" />
+                            <div
+                              key={i}
+                              className="aspect-[3/4] rounded-xl overflow-hidden border border-[#D9D1C5] bg-[#ECE5DA]"
+                            >
+                              <img
+                                src={img}
+                                alt={`Reference ${i + 1}`}
+                                referrerPolicy="no-referrer"
+                                className="w-full h-full object-contain object-center"
+                              />
                             </div>
                           ))}
                         </div>

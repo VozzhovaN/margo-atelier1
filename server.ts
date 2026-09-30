@@ -8,6 +8,12 @@ import {
   submitConsultation,
   updateConsultationStatus,
 } from './lib/consultations';
+import {
+  createAdminToken,
+  isAdminPasswordConfigured,
+  requireAdminAuth,
+  verifyAdminPassword,
+} from './lib/admin-auth';
 import type { Consultation } from './lib/types';
 
 const runningFromDist = /dist[/\\]server\.cjs$/.test(process.argv[1] || '');
@@ -30,8 +36,35 @@ app.disable('x-powered-by');
 app.set('trust proxy', 1);
 app.use(express.json({ limit: '12mb' }));
 
+function denyUnlessAdmin(req: express.Request, res: express.Response): boolean {
+  if (!isAdminPasswordConfigured()) {
+    res.status(503).json({
+      error: 'Admin password is not configured. Set ADMIN_PASSWORD in environment.',
+    });
+    return false;
+  }
+  if (!requireAdminAuth(req.headers.authorization)) {
+    res.status(401).json({ error: 'Unauthorized' });
+    return false;
+  }
+  return true;
+}
+
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', atelier: 'MARGO Atelier', timestamp: new Date().toISOString() });
+});
+
+app.post('/api/admin/login', (req, res) => {
+  if (!isAdminPasswordConfigured()) {
+    return res.status(503).json({
+      error: 'Admin password is not configured. Set ADMIN_PASSWORD in environment.',
+    });
+  }
+  const password = String(req.body?.password || '');
+  if (!verifyAdminPassword(password)) {
+    return res.status(401).json({ error: 'Invalid password' });
+  }
+  return res.json({ success: true, token: createAdminToken(password) });
 });
 
 app.post('/api/gemini/style-direction', async (req, res) => {
@@ -54,7 +87,8 @@ app.post('/api/consultations', async (req, res) => {
   }
 });
 
-app.get('/api/consultations', (_req, res) => {
+app.get('/api/consultations', (req, res) => {
+  if (!denyUnlessAdmin(req, res)) return;
   const list = loadConsultations();
   res.json({
     consultations: list,
@@ -63,6 +97,7 @@ app.get('/api/consultations', (_req, res) => {
 });
 
 app.patch('/api/consultations/:id', (req, res) => {
+  if (!denyUnlessAdmin(req, res)) return;
   const { id } = req.params;
   const { status } = req.body as { status?: Consultation['status'] };
   const item = updateConsultationStatus(id, status as Consultation['status']);

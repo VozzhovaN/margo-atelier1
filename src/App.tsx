@@ -73,6 +73,9 @@ const INITIAL_DOSSIER: ConsultationDossier = {
     atelierLocation: 'Южная Африка',
     preferredLanguage: 'Русский',
   },
+  consentAccepted: false,
+  consentAcceptedAt: '',
+  consentVersion: '',
 };
 
 export default function App() {
@@ -310,7 +313,13 @@ export default function App() {
                 className={`w-full ${isWelcomeScreen ? 'h-full min-h-0 flex flex-col' : ''}`}
               >
                 {currentStep === 'welcome' && (
-                  <WelcomeView onStart={() => setCurrentStep('occasion')} lang={lang} />
+                  <WelcomeView
+                    onStart={(consent) => {
+                      setDossier((prev) => ({ ...prev, ...consent }));
+                      setCurrentStep('occasion');
+                    }}
+                    lang={lang}
+                  />
                 )}
 
                 {currentStep === 'occasion' && (

@@ -16,6 +16,10 @@ import carouselCoatdress from '../assets/images/carousel/margo_silhouette_coatdr
 import carouselMermaid from '../assets/images/carousel/margo_silhouette_mermaid.jpg';
 import carouselSlipBlack from '../assets/images/carousel/margo_silhouette_slip_black.jpg';
 import carouselFabric from '../assets/images/carousel/margo_fabric_detail_1789726769694.jpg';
+import carouselQuietLuxury from '../assets/images/carousel/margo_style_quiet_luxury.jpg';
+import carouselContemporaryRomantic from '../assets/images/carousel/margo_style_contemporary_romantic.jpg';
+import carouselSculptural from '../assets/images/carousel/margo_style_sculptural.jpg';
+import carouselSensualSiren from '../assets/images/carousel/margo_style_sensual_siren.jpg';
 
 interface StepReferencesProps {
   references: string[];
@@ -41,6 +45,10 @@ const CAROUSEL_IMAGES: GalleryItem[] = [
   { id: 'slip', image: carouselSlipBlack },
   { id: 'coatdress', image: carouselCoatdress },
   { id: 'mermaid', image: carouselMermaid },
+  { id: 'quiet_luxury', image: carouselQuietLuxury },
+  { id: 'contemporary_romantic', image: carouselContemporaryRomantic },
+  { id: 'sculptural', image: carouselSculptural },
+  { id: 'sensual_siren', image: carouselSensualSiren },
   { id: 'fabric', image: carouselFabric },
 ];
 
@@ -56,6 +64,7 @@ export const StepReferences: React.FC<StepReferencesProps> = ({
   const carouselRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [gallerySelected, setGallerySelected] = useState<Record<string, string>>({});
 
   const galleryItems = useMemo(() => CAROUSEL_IMAGES, []);
 
@@ -100,15 +109,41 @@ export const StepReferences: React.FC<StepReferencesProps> = ({
   };
 
   const removeReference = (index: number) => {
+    const removed = references[index];
     const next = references.filter((_, i) => i !== index);
+    setGallerySelected((prev) => {
+      const updated = { ...prev };
+      Object.entries(updated).forEach(([id, dataUrl]) => {
+        if (dataUrl === removed) delete updated[id];
+      });
+      return updated;
+    });
     onUpdate({ references: next, referenceNotes });
   };
 
-  const toggleGalleryImage = (image: string) => {
+  const toDataUrl = async (src: string): Promise<string> => {
+    if (src.startsWith('data:')) return src;
+    const res = await fetch(src);
+    const blob = await res.blob();
+    return await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result || ''));
+      reader.onerror = () => reject(new Error('Failed to read image'));
+      reader.readAsDataURL(blob);
+    });
+  };
+
+  const toggleGalleryImage = async (item: GalleryItem) => {
     setUploadError(null);
-    if (references.includes(image)) {
+    const existing = gallerySelected[item.id];
+    if (existing) {
+      setGallerySelected((prev) => {
+        const next = { ...prev };
+        delete next[item.id];
+        return next;
+      });
       onUpdate({
-        references: references.filter((r) => r !== image),
+        references: references.filter((r) => r !== existing),
         referenceNotes,
       });
       return;
@@ -117,7 +152,15 @@ export const StepReferences: React.FC<StepReferencesProps> = ({
       setUploadError(t.step08GalleryMax);
       return;
     }
-    onUpdate({ references: [...references, image], referenceNotes });
+    try {
+      const dataUrl = await toDataUrl(item.image);
+      setGallerySelected((prev) => ({ ...prev, [item.id]: dataUrl }));
+      onUpdate({ references: [...references, dataUrl], referenceNotes });
+    } catch {
+      setUploadError(
+        lang === 'ru' ? 'Не удалось добавить изображение.' : 'Could not add the image.'
+      );
+    }
   };
 
   const scrollCarousel = (direction: 'left' | 'right') => {
@@ -266,12 +309,12 @@ export const StepReferences: React.FC<StepReferencesProps> = ({
           style={{ scrollbarWidth: 'none' }}
         >
           {galleryItems.map((item) => {
-            const isSelected = references.includes(item.image);
+            const isSelected = Boolean(gallerySelected[item.id]);
             return (
               <button
                 key={item.id}
                 type="button"
-                onClick={() => toggleGalleryImage(item.image)}
+                onClick={() => toggleGalleryImage(item)}
                 className={`relative shrink-0 w-[42%] sm:w-[38%] snap-start rounded-2xl overflow-hidden border cursor-pointer transition-all duration-200 bg-[#F3EEE6] ${
                   isSelected
                     ? 'border-[#1A1816] ring-1 ring-[#1A1816] shadow-md'

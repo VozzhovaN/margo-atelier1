@@ -1,8 +1,17 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { loadConsultations, submitConsultation } from '../lib/consultations';
+import { isAdminPasswordConfigured, requireAdminAuth } from '../lib/admin-auth';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method === 'GET') {
+    if (!isAdminPasswordConfigured()) {
+      return res.status(503).json({
+        error: 'Admin password is not configured. Set ADMIN_PASSWORD in environment.',
+      });
+    }
+    if (!requireAdminAuth(req.headers.authorization)) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
     const list = loadConsultations();
     return res.status(200).json({
       consultations: list,

@@ -77,6 +77,12 @@ export function saveConsultations(items: Consultation[]): boolean {
   return writeFileStore(items);
 }
 
+function asJoined(value: unknown): string {
+  if (Array.isArray(value)) return value.filter(Boolean).join(', ');
+  if (typeof value === 'string') return value;
+  return '';
+}
+
 export function createConsultationFromBody(body: any): Consultation {
   return {
     id: `MARGO-${Math.floor(1000 + Math.random() * 9000)}`,
@@ -88,20 +94,21 @@ export function createConsultationFromBody(body: any): Consultation {
     settingOther: body.settingOther || '',
     eventCity: body.eventCity || '',
     budget: body.budget || '',
-    silhouette: body.silhouette
-      ? Array.isArray(body.silhouette)
-        ? body.silhouette.join(', ')
-        : body.silhouette
-      : '',
-    style: body.style
-      ? Array.isArray(body.style)
-        ? body.style.join(', ')
-        : body.style
-      : '',
-    colors: body.colors || [],
+    silhouette: body.silhouetteLabel || asJoined(body.silhouette) || '',
+    style: body.styleLabel || asJoined(body.style) || '',
+    colors: Array.isArray(body.colors)
+      ? body.colors
+      : body.colourLabel
+        ? String(body.colourLabel)
+            .split(',')
+            .map((s: string) => s.trim())
+            .filter(Boolean)
+        : [],
+    customColorNote: typeof body.customColorNote === 'string' ? body.customColorNote : '',
     measurements: body.measurements || {},
-    references: body.references || [],
-    priorities: body.priorities || [],
+    references: Array.isArray(body.references) ? body.references.slice(0, 3) : [],
+    referenceNotes: typeof body.referenceNotes === 'string' ? body.referenceNotes : '',
+    priorities: Array.isArray(body.priorities) ? body.priorities : [],
     contact: {
       name: body.contact?.fullName || body.contact?.name || 'Guest Client',
       fullName: body.contact?.fullName || body.contact?.name || 'Guest Client',
@@ -116,6 +123,9 @@ export function createConsultationFromBody(body: any): Consultation {
       preferredLanguage: body.contact?.preferredLanguage || 'Русский',
     },
     aiStyleDirection: body.aiStyleDirection,
+    consentAccepted: Boolean(body.consentAccepted),
+    consentAcceptedAt: body.consentAcceptedAt || '',
+    consentVersion: body.consentVersion || '',
     status: 'new',
   };
 }
@@ -125,36 +135,60 @@ function formatTelegramConsultationMessage(consultation: Consultation): string {
     consultation.contact?.fullName || consultation.contact?.name || 'Guest Client';
 
   const OCCASION_NAMES: Record<string, string> = {
-    bridal: 'Bridal Couture',
-    evening: 'Evening & Gala',
-    special_occasion: 'Special Occasion',
-    custom_dress: 'Bespoke Atelier Creation',
+    bridal: 'Свадебный образ',
+    evening: 'Вечерний образ',
+    special_occasion: 'Особое событие',
+    custom_dress: 'Платье на заказ',
   };
   const occasion =
     OCCASION_NAMES[consultation.occasion] || consultation.occasion || 'Atelier Consultation';
 
   const dateStr = consultation.date
-    ? (consultation.timeline ? `${consultation.date} (${consultation.timeline})` : consultation.date)
-    : (consultation.timeline || 'Flexible');
+    ? consultation.timeline
+      ? `${consultation.date} (${consultation.timeline})`
+      : consultation.date
+    : consultation.timeline || 'Flexible';
 
   const settingsParts = [
     ...(Array.isArray(consultation.settings) ? consultation.settings : []),
     consultation.settingOther,
-    consultation.eventCity ? `City/region: ${consultation.eventCity}` : '',
+    consultation.eventCity ? `Город/регион: ${consultation.eventCity}` : '',
   ].filter(Boolean);
   const settingsStr = settingsParts.length > 0 ? settingsParts.join('; ') : '';
 
-  const budget = consultation.budget || 'Not specified';
-  const silhouette = consultation.silhouette || 'Bespoke';
-  const style = consultation.style || 'Quiet Luxury';
+  const budget = consultation.budget || 'Не указан';
+  const silhouette = consultation.silhouette || 'Не выбран';
+  const style = consultation.style || 'Не выбран';
   const colours =
     Array.isArray(consultation.colors) && consultation.colors.length > 0
       ? consultation.colors.join(', ')
-      : 'Not specified';
+      : 'Не указаны';
+  const colorNote = consultation.customColorNote?.trim()
+    ? `\nПожелания по цвету: ${consultation.customColorNote.trim()}`
+    : '';
   const priorities =
     Array.isArray(consultation.priorities) && consultation.priorities.length > 0
       ? consultation.priorities.join(', ')
-      : 'Not specified';
+      : 'Не указаны';
+
+  const m = consultation.measurements || {};
+  const fit =
+    Array.isArray(m.fitPreferences) && m.fitPreferences.length > 0
+      ? m.fitPreferences.join(', ')
+      : m.fitPreference || '—';
+  const measurementsStr = [
+    m.height ? `Рост: ${m.height}` : '',
+    m.clothingSize ? `Размер: ${m.clothingSize}` : '',
+    `Посадка: ${fit}`,
+    m.notes ? `Заметки: ${m.notes}` : '',
+  ]
+    .filter(Boolean)
+    .join(' | ');
+
+  const refNotes = consultation.referenceNotes?.trim()
+    ? `\nЗаметки к референсам: ${consultation.referenceNotes.trim()}`
+    : '';
+  const refsCount = Array.isArray(consultation.references) ? consultation.references.length : 0;
 
   const contactList: string[] = [];
   const tg = consultation.contact?.telegramHandle || consultation.contact?.telegram;
@@ -164,11 +198,12 @@ function formatTelegramConsultationMessage(consultation: Consultation): string {
   const email = consultation.contact?.email;
   if (email) contactList.push(`Email: ${email}`);
   const location = consultation.contact?.atelierLocation || consultation.contact?.location;
-  if (location) contactList.push(`Venue: ${location}`);
+  if (location) contactList.push(`Локация: ${location}`);
+  const lang = consultation.contact?.preferredLanguage;
+  if (lang) contactList.push(`Язык: ${lang}`);
+  const contactStr = contactList.length > 0 ? contactList.join(' | ') : 'Не указаны';
 
-  const contactStr = contactList.length > 0 ? contactList.join(' | ') : 'Not provided';
-
-  let aiSummary = 'No AI style direction generated';
+  let aiSummary = 'Не сгенерировано';
   if (consultation.aiStyleDirection) {
     const { headline, concept } = consultation.aiStyleDirection;
     if (headline && concept) {
@@ -180,24 +215,81 @@ function formatTelegramConsultationMessage(consultation: Consultation): string {
     }
   }
 
+  const consentLine = consultation.consentAccepted
+    ? `Согласие: да (${consultation.consentAcceptedAt || '—'}; v${consultation.consentVersion || '—'})`
+    : 'Согласие: не отмечено';
+
   const header = consultation.id
-    ? `NEW MARGO ATELIER CONSULTATION\nConsultation ID: ${consultation.id}`
+    ? `NEW MARGO ATELIER CONSULTATION\nID: ${consultation.id}`
     : 'NEW MARGO ATELIER CONSULTATION';
 
   return `${header}
 
-Client: ${clientName}
-Occasion: ${occasion}
-Event date: ${dateStr}${settingsStr ? `\nEvent setting: ${settingsStr}` : ''}
-Budget: ${budget}
-Silhouette: ${silhouette}
-Style: ${style}
-Colours: ${colours}
-Priorities: ${priorities}
-Contact: ${contactStr}
+Клиент: ${clientName}
+Повод: ${occasion}
+Дата: ${dateStr}${settingsStr ? `\nФормат события: ${settingsStr}` : ''}
+Бюджет: ${budget}
+Силуэт: ${silhouette}
+Стиль: ${style}
+Цвета: ${colours}${colorNote}
+Посадка: ${measurementsStr || '—'}
+Приоритеты: ${priorities}
+Фото-референсы: ${refsCount}${refNotes}
+Контакты: ${contactStr}
+${consentLine}
 
 AI STYLE DIRECTION:
 ${aiSummary}`;
+}
+
+async function sendTelegramPhoto(
+  token: string,
+  chatId: string,
+  source: string,
+  caption?: string
+): Promise<boolean> {
+  try {
+    const form = new FormData();
+    form.append('chat_id', chatId);
+    if (caption) form.append('caption', caption.slice(0, 1024));
+
+    if (source.startsWith('data:')) {
+      const match = source.match(/^data:([^;]+);base64,(.+)$/);
+      if (!match) return false;
+      const mime = match[1] || 'image/jpeg';
+      const buffer = Buffer.from(match[2], 'base64');
+      const ext = mime.includes('png') ? 'png' : mime.includes('webp') ? 'webp' : 'jpg';
+      const blob = new Blob([buffer], { type: mime });
+      form.append('photo', blob, `reference.${ext}`);
+    } else if (/^https?:\/\//i.test(source)) {
+      form.append('photo', source);
+    } else if (source.startsWith('/')) {
+      const appUrl = process.env.APP_URL?.replace(/\/$/, '');
+      if (!appUrl) return false;
+      form.append('photo', `${appUrl}${source}`);
+    } else {
+      return false;
+    }
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 20000);
+    const response = await fetch(`https://api.telegram.org/bot${token}/sendPhoto`, {
+      method: 'POST',
+      body: form,
+      signal: controller.signal,
+    });
+    clearTimeout(timeout);
+
+    const data: any = await response.json().catch(() => ({}));
+    if (!response.ok || !data.ok) {
+      console.error('[Telegram] sendPhoto failed:', data?.description || response.status);
+      return false;
+    }
+    return true;
+  } catch (err: any) {
+    console.error('[Telegram] sendPhoto error:', err?.message || err);
+    return false;
+  }
 }
 
 export async function sendTelegramNotification(consultation: Consultation): Promise<boolean> {
@@ -214,7 +306,7 @@ export async function sendTelegramNotification(consultation: Consultation): Prom
     const url = `https://api.telegram.org/bot${token}/sendMessage`;
 
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 7000);
+    const timeout = setTimeout(() => controller.abort(), 10000);
 
     const response = await fetch(url, {
       method: 'POST',
@@ -237,6 +329,16 @@ export async function sendTelegramNotification(consultation: Consultation): Prom
       return false;
     }
 
+    const refs = Array.isArray(consultation.references) ? consultation.references.slice(0, 3) : [];
+    for (let i = 0; i < refs.length; i++) {
+      await sendTelegramPhoto(
+        token,
+        chatId,
+        refs[i],
+        `Референс ${i + 1}/${refs.length} · ${consultation.id}`
+      );
+    }
+
     console.info(`[Telegram] Successfully delivered notification for dossier ${consultation.id}`);
     return true;
   } catch (error: any) {
@@ -251,7 +353,9 @@ export async function submitConsultation(body: any) {
   list.unshift(newConsultation);
   saveConsultations(list);
 
-  console.log(`[MARGO Atelier Engine] New Consultation Dossier: ${newConsultation.contact.name} (${newConsultation.id})`);
+  console.log(
+    `[MARGO Atelier Engine] New Consultation Dossier: ${newConsultation.contact.name} (${newConsultation.id})`
+  );
 
   let telegramNotificationSent = false;
   try {

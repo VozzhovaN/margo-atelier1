@@ -11,6 +11,7 @@ export interface Consultation {
   silhouette: string;
   style: string;
   colors: string[];
+  customColorNote?: string;
   measurements: {
     height?: string;
     clothingSize?: string;
@@ -20,6 +21,7 @@ export interface Consultation {
     notes?: string;
   };
   references: string[];
+  referenceNotes?: string;
   priorities: string[];
   contact: {
     name: string;
@@ -41,5 +43,8 @@ export interface Consultation {
     architecturalDetails: string[];
     consultationFocus: string[];
   };
+  consentAccepted?: boolean;
+  consentAcceptedAt?: string;
+  consentVersion?: string;
   status: 'new' | 'contacted' | 'scheduled' | 'fitting' | 'completed';
 }

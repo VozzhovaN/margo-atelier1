@@ -96,6 +96,9 @@ export interface ConsultationDossier {
   priorities: string[];
   contact: ClientContact;
   aiStyleDirection?: AIStyleDirection;
+  consentAccepted?: boolean;
+  consentAcceptedAt?: string;
+  consentVersion?: string;
   status?: 'new' | 'contacted' | 'scheduled' | 'fitting' | 'completed';
 }
 

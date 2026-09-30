@@ -14,6 +14,23 @@ export interface TranslationDict {
   startBtn: string;
   citiesFooter: string;
   citiesFooterSub: string;
+  consentTitle: string;
+  consentIntro: string;
+  consentTermsTitle: string;
+  consentTermsBody: string[];
+  consentPrivacyTitle: string;
+  consentPrivacyBody: string[];
+  consentTermsCheck: string;
+  consentPrivacyCheck: string;
+  consentAcceptBtn: string;
+  consentCancelBtn: string;
+  adminLoginTitle: string;
+  adminLoginHint: string;
+  adminPasswordLabel: string;
+  adminPasswordPlaceholder: string;
+  adminLoginBtn: string;
+  adminLoginError: string;
+  adminLogoutBtn: string;
 
   // Header
   atelierDeskBtn: string;
@@ -247,6 +264,32 @@ export const TRANSLATIONS: Record<SupportedLanguage, TranslationDict> = {
     startBtn: 'Начать подбор образа',
     citiesFooter: 'Onrus · Western Cape · South Africa',
     citiesFooterSub: 'В ателье и онлайн',
+    consentTitle: 'Согласие пользователя',
+    consentIntro:
+      'Перед началом подбора образа подтвердите согласие с условиями использования и обработкой персональных данных.',
+    consentTermsTitle: 'Пользовательское соглашение',
+    consentTermsBody: [
+      'Сервис MARGO Bridal & Special Occasion помогает подготовить пожелания к консультации по свадебным и вечерним платьям.',
+      'Ответы анкеты используются только для подготовки к встрече в ателье или онлайн и не являются публичным предложением.',
+      'Окончательный выбор модели, ткани, стоимости и сроков подтверждается на консультации.',
+    ],
+    consentPrivacyTitle: 'Обработка персональных данных',
+    consentPrivacyBody: [
+      'Вы даёте согласие на обработку указанных вами данных: имя, контакты, параметры посадки, пожелания по образу и загруженные изображения.',
+      'Данные хранятся для связи по консультации и передачи в рабочий контур ателье (включая уведомление в Telegram).',
+      'Вы можете запросить уточнение или удаление данных, связавшись с ателье по указанным контактам.',
+    ],
+    consentTermsCheck: 'Я принимаю пользовательское соглашение',
+    consentPrivacyCheck: 'Я соглашаюсь на обработку персональных данных',
+    consentAcceptBtn: 'Принять и продолжить',
+    consentCancelBtn: 'Отмена',
+    adminLoginTitle: 'Вход в консоль ателье',
+    adminLoginHint: 'Введите пароль администратора для просмотра анкет.',
+    adminPasswordLabel: 'Пароль',
+    adminPasswordPlaceholder: 'Пароль доступа',
+    adminLoginBtn: 'Войти',
+    adminLoginError: 'Неверный пароль или доступ недоступен.',
+    adminLogoutBtn: 'Выйти',
 
     atelierDeskBtn: 'Консоль Ателье',
     clientAppBtn: 'Досье Клиента',
@@ -476,6 +519,32 @@ export const TRANSLATIONS: Record<SupportedLanguage, TranslationDict> = {
     startBtn: 'Start look selection',
     citiesFooter: 'Onrus · Western Cape · South Africa',
     citiesFooterSub: 'In atelier and online',
+    consentTitle: 'User agreement',
+    consentIntro:
+      'Before starting look selection, please confirm the terms of use and consent to personal data processing.',
+    consentTermsTitle: 'Terms of use',
+    consentTermsBody: [
+      'The MARGO Bridal & Special Occasion service helps prepare your wishes for a bridal or evening dress consultation.',
+      'Questionnaire answers are used only to prepare for an atelier or online meeting and are not a public offer.',
+      'The final choice of model, fabric, price and timing is confirmed at the consultation.',
+    ],
+    consentPrivacyTitle: 'Personal data processing',
+    consentPrivacyBody: [
+      'You consent to processing of the data you provide: name, contacts, fit preferences, look wishes and uploaded images.',
+      'Data is stored to arrange the consultation and for the atelier workflow (including Telegram notification).',
+      'You may request clarification or deletion of your data by contacting the atelier.',
+    ],
+    consentTermsCheck: 'I accept the terms of use',
+    consentPrivacyCheck: 'I consent to personal data processing',
+    consentAcceptBtn: 'Accept and continue',
+    consentCancelBtn: 'Cancel',
+    adminLoginTitle: 'Atelier console login',
+    adminLoginHint: 'Enter the administrator password to view dossiers.',
+    adminPasswordLabel: 'Password',
+    adminPasswordPlaceholder: 'Access password',
+    adminLoginBtn: 'Sign in',
+    adminLoginError: 'Invalid password or access unavailable.',
+    adminLogoutBtn: 'Sign out',
 
     atelierDeskBtn: 'Atelier Desk',
     clientAppBtn: 'Client App',
