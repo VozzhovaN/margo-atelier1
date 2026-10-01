@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import { sendAdminDossierEmail } from './admin-mail';
 import { Consultation } from './types';
 
 /**
@@ -130,7 +131,7 @@ export function createConsultationFromBody(body: any): Consultation {
   };
 }
 
-function formatTelegramConsultationMessage(consultation: Consultation): string {
+export function formatConsultationMessage(consultation: Consultation): string {
   const clientName =
     consultation.contact?.fullName || consultation.contact?.name || 'Guest Client';
 
@@ -302,7 +303,7 @@ export async function sendTelegramNotification(consultation: Consultation): Prom
   }
 
   try {
-    const text = formatTelegramConsultationMessage(consultation);
+    const text = formatConsultationMessage(consultation);
     const url = `https://api.telegram.org/bot${token}/sendMessage`;
 
     const controller = new AbortController();
@@ -358,11 +359,18 @@ export async function submitConsultation(body: any) {
   );
 
   let telegramNotificationSent = false;
+  let emailNotificationSent = false;
   try {
     telegramNotificationSent = await sendTelegramNotification(newConsultation);
   } catch (tgErr: any) {
     console.error('[Telegram] Unexpected notification error:', tgErr?.message || 'Error');
     telegramNotificationSent = false;
+  }
+  try {
+    emailNotificationSent = await sendAdminDossierEmail(newConsultation);
+  } catch (mailErr: any) {
+    console.error('[Email] Unexpected notification error:', mailErr?.message || 'Error');
+    emailNotificationSent = false;
   }
 
   const clientName = newConsultation.contact.fullName || newConsultation.contact.name;
@@ -371,6 +379,7 @@ export async function submitConsultation(body: any) {
     success: true,
     consultation: newConsultation,
     telegramNotificationSent,
+    emailNotificationSent,
     persisted: !isVercel,
     whatsappLink: `https://wa.me/393498124490?text=${encodeURIComponent(
       `Hello MARGO Atelier, I have prepared my consultation dossier #${newConsultation.id} for ${newConsultation.occasion} (${clientName}).`
