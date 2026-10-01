@@ -50,7 +50,7 @@ export const WelcomeView: React.FC<WelcomeViewProps> = ({ onStart, lang }) => {
         variants={staggerContainer(0.04, 0.02)}
         initial="initial"
         animate="animate"
-        className="w-full max-w-xl mx-auto px-3 sm:px-4 py-1 sm:py-10 flex flex-col items-center text-center h-full min-h-0 sm:h-auto sm:min-h-0 overflow-hidden sm:overflow-visible justify-between gap-1 sm:gap-0"
+        className="w-full max-w-xl mx-auto px-3 sm:px-4 py-1 sm:py-10 flex flex-col items-center text-center h-full min-h-0 sm:h-auto sm:min-h-0 overflow-y-auto sm:overflow-visible justify-between gap-1 sm:gap-0"
       >
         <div className="w-full flex flex-col items-center shrink-0">
           <motion.div
@@ -78,11 +78,11 @@ export const WelcomeView: React.FC<WelcomeViewProps> = ({ onStart, lang }) => {
           </motion.div>
         </div>
 
-        <motion.div variants={microFadeUp} className="mx-auto my-1 sm:mb-8 w-full max-w-md shrink-0 flex justify-center">
+        <motion.div variants={microFadeUp} className="mx-auto my-1 sm:my-8 w-full max-w-md shrink-0">
           <img
             src={welcomeHeroImg}
             alt="MARGO Bridal & Special Occasion"
-            className="block h-auto w-auto max-w-full max-h-[min(36vh,300px)] sm:max-h-[min(56vh,640px)] object-contain object-center rounded-lg sm:rounded-2xl shadow-lg sm:shadow-2xl border border-[#E8E2D9] bg-[#F3EEE6]"
+            className="block w-full h-auto object-contain object-center rounded-lg sm:rounded-2xl shadow-lg sm:shadow-2xl border border-[#E8E2D9] bg-[#F3EEE6]"
           />
         </motion.div>
 

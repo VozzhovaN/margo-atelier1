@@ -267,7 +267,7 @@ export default function App() {
       <main
         className={`flex-1 w-full flex flex-col items-center justify-start min-h-0 ${
           isWelcomeScreen
-            ? 'pb-0 overflow-hidden sm:overflow-visible sm:pb-12'
+            ? 'pb-0 overflow-y-auto sm:overflow-visible sm:pb-12'
             : isDateScreen ||
                 isBudgetScreen ||
                 isSilhouetteScreen ||
