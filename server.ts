@@ -26,8 +26,8 @@ const projectRoot = runningFromDist
   ? path.resolve(path.dirname(path.resolve(process.argv[1])), '..')
   : process.cwd();
 
-dotenv.config({ path: path.join(projectRoot, '.env') });
-dotenv.config({ path: path.join(projectRoot, '.env.local') });
+dotenv.config({ path: path.join(projectRoot, '.env'), override: true });
+dotenv.config({ path: path.join(projectRoot, '.env.local'), override: true });
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
@@ -66,7 +66,7 @@ app.post('/api/admin/login', (req, res) => {
   if (!verifyAdminPassword(password)) {
     return res.status(401).json({ error: 'Invalid password' });
   }
-  return res.json({ success: true, token: createAdminToken(password) });
+  return res.json({ success: true, token: createAdminToken() });
 });
 
 app.post('/api/gemini/style-direction', async (req, res) => {

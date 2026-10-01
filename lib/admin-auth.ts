@@ -1,32 +1,42 @@
 import crypto from 'crypto';
 
+function normalizeSecret(value: unknown): string {
+  if (typeof value !== 'string') return '';
+  return value.normalize('NFKC').replace(/[\u200B-\u200D\uFEFF]/g, '').trim();
+}
+
+function adminSecret(): string {
+  return normalizeSecret(process.env.ADMIN_PASSWORD);
+}
+
+function safeEqual(a: string, b: string): boolean {
+  const left = Buffer.from(a);
+  const right = Buffer.from(b);
+  if (left.length !== right.length) return false;
+  return crypto.timingSafeEqual(left, right);
+}
+
 export function isAdminPasswordConfigured(): boolean {
-  return Boolean(process.env.ADMIN_PASSWORD?.trim());
+  return adminSecret().length > 0;
 }
 
 export function verifyAdminPassword(password: string): boolean {
-  const expected = process.env.ADMIN_PASSWORD?.trim();
-  if (!expected || typeof password !== 'string' || !password) return false;
-  const a = Buffer.from(password);
-  const b = Buffer.from(expected);
-  if (a.length !== b.length) return false;
-  return crypto.timingSafeEqual(a, b);
+  const expected = adminSecret();
+  const given = normalizeSecret(password);
+  if (!expected || !given) return false;
+  return safeEqual(given, expected);
 }
 
-export function createAdminToken(password: string): string {
-  const secret = process.env.ADMIN_PASSWORD?.trim() || 'margo';
-  return crypto.createHmac('sha256', secret).update(`margo-admin-v1:${password}`).digest('hex');
+export function createAdminToken(): string {
+  const secret = adminSecret();
+  return crypto.createHmac('sha256', secret).update('margo-admin-session-v2').digest('hex');
 }
 
 export function verifyAdminToken(token: string | undefined | null): boolean {
-  if (!token || typeof token !== 'string') return false;
-  const secret = process.env.ADMIN_PASSWORD?.trim();
-  if (!secret) return false;
-  const expected = createAdminToken(secret);
-  const a = Buffer.from(token);
-  const b = Buffer.from(expected);
-  if (a.length !== b.length) return false;
-  return crypto.timingSafeEqual(a, b);
+  const given = normalizeSecret(token);
+  const secret = adminSecret();
+  if (!given || !secret) return false;
+  return safeEqual(given, createAdminToken());
 }
 
 export function getBearerToken(authHeader: string | undefined | null): string | undefined {

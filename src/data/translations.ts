@@ -33,6 +33,8 @@ export interface TranslationDict {
   adminLoginError: string;
   adminLoginErrorUnauthorized: string;
   adminLoginErrorNotConfigured: string;
+  adminLoginErrorOffline: string;
+  adminSessionExpired: string;
   adminLogoutBtn: string;
 
   // Header
@@ -307,9 +309,11 @@ export const TRANSLATIONS: Record<SupportedLanguage, TranslationDict> = {
     adminPasswordLabel: 'Пароль',
     adminPasswordPlaceholder: 'Пароль доступа',
     adminLoginBtn: 'Войти',
-    adminLoginError: 'Неверный пароль или доступ недоступен.',
-    adminLoginErrorUnauthorized: 'Неверный пароль. Проверьте .env → ADMIN_PASSWORD.',
+    adminLoginError: 'Не удалось войти. Попробуйте ещё раз.',
+    adminLoginErrorUnauthorized: 'Неверный пароль.',
     adminLoginErrorNotConfigured: 'Пароль админа не настроен. Добавьте ADMIN_PASSWORD в файл .env и перезапустите сервер.',
+    adminLoginErrorOffline: 'Сервер не отвечает. Запустите приложение командой npm run dev и попробуйте снова.',
+    adminSessionExpired: 'Сессия закончилась. Введите пароль ещё раз.',
     adminLogoutBtn: 'Выйти',
 
     atelierDeskBtn: 'Консоль Ателье',
@@ -581,9 +585,11 @@ export const TRANSLATIONS: Record<SupportedLanguage, TranslationDict> = {
     adminPasswordLabel: 'Password',
     adminPasswordPlaceholder: 'Access password',
     adminLoginBtn: 'Sign in',
-    adminLoginError: 'Invalid password or access unavailable.',
-    adminLoginErrorUnauthorized: 'Wrong password. Check .env → ADMIN_PASSWORD.',
+    adminLoginError: 'Could not sign in. Please try again.',
+    adminLoginErrorUnauthorized: 'Wrong password.',
     adminLoginErrorNotConfigured: 'Admin password is not configured. Set ADMIN_PASSWORD in .env and restart the server.',
+    adminLoginErrorOffline: 'The server is not responding. Start the app with npm run dev and try again.',
+    adminSessionExpired: 'Your session expired. Enter the password again.',
     adminLogoutBtn: 'Sign out',
 
     atelierDeskBtn: 'Atelier Desk',

@@ -66,7 +66,7 @@ export const AtelierDashboard: React.FC<AtelierDashboardProps> = ({ onBackToApp,
         } catch {
           // ignore
         }
-        setLoginError(t.adminLoginError);
+        setLoginError(res.status === 503 ? t.adminLoginErrorNotConfigured : t.adminSessionExpired);
         return;
       }
       if (res.ok) {
@@ -113,7 +113,7 @@ export const AtelierDashboard: React.FC<AtelierDashboardProps> = ({ onBackToApp,
       setToken(data.token);
       setPassword('');
     } catch {
-      setLoginError(t.adminLoginError);
+      setLoginError(t.adminLoginErrorOffline);
     } finally {
       setLoggingIn(false);
     }

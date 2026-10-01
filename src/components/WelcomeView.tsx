@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Sparkles, ArrowRight, Clock, ShieldCheck, Compass, X } from 'lucide-react';
 import { SupportedLanguage, TRANSLATIONS } from '../data/translations';
 import { staggerContainer, microFadeUp, microFadeUpSubtle } from '../utils/motion';
-import welcomeHeroImg from '../assets/images/margo_welcome_hero.png';
+import welcomeHeroImg from '../assets/images/margo_welcome_hero.jpg';
 
 export const CONSENT_VERSION = '2026-09-30';
 
@@ -78,15 +78,11 @@ export const WelcomeView: React.FC<WelcomeViewProps> = ({ onStart, lang }) => {
           </motion.div>
         </div>
 
-        <motion.div
-          variants={microFadeUp}
-          className="relative aspect-[3/4] h-[min(36vh,300px)] w-auto max-w-full mx-auto sm:h-auto sm:w-full sm:max-w-md sm:max-h-none rounded-lg sm:rounded-2xl overflow-hidden shadow-lg sm:shadow-2xl my-1 sm:mb-8 border border-[#E8E2D9] shrink-0"
-        >
+        <motion.div variants={microFadeUp} className="mx-auto my-1 sm:mb-8 w-full max-w-md shrink-0 flex justify-center">
           <img
             src={welcomeHeroImg}
             alt="MARGO Bridal & Special Occasion"
-            referrerPolicy="no-referrer"
-            className="absolute inset-0 w-full h-full object-contain object-center"
+            className="block h-auto w-auto max-w-full max-h-[min(36vh,300px)] sm:max-h-[min(56vh,640px)] object-contain object-center rounded-lg sm:rounded-2xl shadow-lg sm:shadow-2xl border border-[#E8E2D9] bg-[#F3EEE6]"
           />
         </motion.div>
 
