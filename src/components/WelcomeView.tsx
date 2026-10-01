@@ -160,7 +160,7 @@ export const WelcomeView: React.FC<WelcomeViewProps> = ({ onStart, lang }) => {
               exit={{ opacity: 0, y: 16 }}
               transition={{ duration: 0.25 }}
               onClick={(e) => e.stopPropagation()}
-              className="w-full max-h-[88dvh] overflow-hidden rounded-t-2xl rounded-b-none bg-[#FAF8F5] border-t border-x border-[#E8E1D6] shadow-2xl flex flex-col"
+              className="w-full sm:max-w-lg max-h-[88dvh] overflow-hidden rounded-t-2xl rounded-b-none bg-[#FAF8F5] border-t border-x border-[#E8E1D6] shadow-2xl flex flex-col"
               role="dialog"
               aria-modal="true"
               aria-labelledby="consent-title"
@@ -208,7 +208,7 @@ export const WelcomeView: React.FC<WelcomeViewProps> = ({ onStart, lang }) => {
                 </label>
               </div>
 
-              <div className="mx-4 sm:mx-5 my-3 max-h-[33dvh] overflow-y-scroll overscroll-contain rounded-xl border border-[#E2DAD0] bg-[#F6F1EA] px-3 py-3 space-y-4 text-left [scrollbar-width:auto] [scrollbar-color:#6B6157_#E8E1D6] [&::-webkit-scrollbar]:w-2.5 [&::-webkit-scrollbar-track]:bg-[#E8E1D6] [&::-webkit-scrollbar-thumb]:bg-[#6B6157] [&::-webkit-scrollbar-thumb]:rounded-full">
+              <div className="mx-4 sm:mx-5 my-2 max-h-[16dvh] overflow-y-scroll overscroll-contain rounded-xl border border-[#E2DAD0] bg-[#F6F1EA] px-3 py-2 space-y-3 text-left [scrollbar-width:auto] [scrollbar-color:#6B6157_#E8E1D6] [&::-webkit-scrollbar]:w-2.5 [&::-webkit-scrollbar-track]:bg-[#E8E1D6] [&::-webkit-scrollbar-thumb]:bg-[#6B6157] [&::-webkit-scrollbar-thumb]:rounded-full">
                 <section>
                   <h3 className="text-[10px] uppercase tracking-[0.18em] font-medium text-[#544B43] mb-1.5">
                     {t.consentTermsTitle}
