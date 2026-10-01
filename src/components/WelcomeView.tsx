@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { Sparkles, ArrowRight, Clock, ShieldCheck, Compass, X } from 'lucide-react';
 import { SupportedLanguage, TRANSLATIONS } from '../data/translations';
@@ -143,13 +144,14 @@ export const WelcomeView: React.FC<WelcomeViewProps> = ({ onStart, lang }) => {
         </div>
       </motion.div>
 
+      {createPortal(
       <AnimatePresence>
         {showConsent && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[80] flex items-end sm:items-center justify-center bg-[#1A1816]/45 backdrop-blur-[2px] p-3 sm:p-6"
+            className="fixed inset-0 z-[80] flex items-end justify-center bg-[#1A1816]/45 backdrop-blur-[2px] p-0"
             onClick={() => setShowConsent(false)}
           >
             <motion.div
@@ -158,7 +160,7 @@ export const WelcomeView: React.FC<WelcomeViewProps> = ({ onStart, lang }) => {
               exit={{ opacity: 0, y: 16 }}
               transition={{ duration: 0.25 }}
               onClick={(e) => e.stopPropagation()}
-              className="w-full max-w-lg max-h-[88dvh] overflow-hidden rounded-2xl bg-[#FAF8F5] border border-[#E8E1D6] shadow-2xl flex flex-col"
+              className="w-full max-h-[88dvh] overflow-hidden rounded-t-2xl rounded-b-none bg-[#FAF8F5] border-t border-x border-[#E8E1D6] shadow-2xl flex flex-col"
               role="dialog"
               aria-modal="true"
               aria-labelledby="consent-title"
@@ -185,7 +187,28 @@ export const WelcomeView: React.FC<WelcomeViewProps> = ({ onStart, lang }) => {
                 </button>
               </div>
 
-              <div className="overflow-y-auto px-4 sm:px-5 py-4 space-y-4 text-left">
+              <div className="px-4 sm:px-5 pt-3 pb-2 space-y-2.5 text-left border-b border-[#EAE3D9]">
+                <label className="flex items-start gap-2.5 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={acceptTerms}
+                    onChange={(e) => setAcceptTerms(e.target.checked)}
+                    className="mt-0.5 accent-[#1A1816]"
+                  />
+                  <span className="text-xs text-[#1A1816] leading-snug">{t.consentTermsCheck}</span>
+                </label>
+                <label className="flex items-start gap-2.5 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={acceptPrivacy}
+                    onChange={(e) => setAcceptPrivacy(e.target.checked)}
+                    className="mt-0.5 accent-[#1A1816]"
+                  />
+                  <span className="text-xs text-[#1A1816] leading-snug">{t.consentPrivacyCheck}</span>
+                </label>
+              </div>
+
+              <div className="mx-4 sm:mx-5 my-3 max-h-[33dvh] overflow-y-scroll overscroll-contain rounded-xl border border-[#E2DAD0] bg-[#F6F1EA] px-3 py-3 space-y-4 text-left [scrollbar-width:auto] [scrollbar-color:#6B6157_#E8E1D6] [&::-webkit-scrollbar]:w-2.5 [&::-webkit-scrollbar-track]:bg-[#E8E1D6] [&::-webkit-scrollbar-thumb]:bg-[#6B6157] [&::-webkit-scrollbar-thumb]:rounded-full">
                 <section>
                   <h3 className="text-[10px] uppercase tracking-[0.18em] font-medium text-[#544B43] mb-1.5">
                     {t.consentTermsTitle}
@@ -206,25 +229,6 @@ export const WelcomeView: React.FC<WelcomeViewProps> = ({ onStart, lang }) => {
                     ))}
                   </div>
                 </section>
-
-                <label className="flex items-start gap-2.5 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={acceptTerms}
-                    onChange={(e) => setAcceptTerms(e.target.checked)}
-                    className="mt-0.5 accent-[#1A1816]"
-                  />
-                  <span className="text-xs text-[#1A1816] leading-snug">{t.consentTermsCheck}</span>
-                </label>
-                <label className="flex items-start gap-2.5 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={acceptPrivacy}
-                    onChange={(e) => setAcceptPrivacy(e.target.checked)}
-                    className="mt-0.5 accent-[#1A1816]"
-                  />
-                  <span className="text-xs text-[#1A1816] leading-snug">{t.consentPrivacyCheck}</span>
-                </label>
               </div>
 
               <div className="px-4 sm:px-5 py-3 border-t border-[#EAE3D9] flex flex-col sm:flex-row gap-2">
@@ -251,7 +255,9 @@ export const WelcomeView: React.FC<WelcomeViewProps> = ({ onStart, lang }) => {
             </motion.div>
           </motion.div>
         )}
-      </AnimatePresence>
+      </AnimatePresence>,
+      document.body,
+      )}
     </>
   );
 };
