@@ -17,6 +17,41 @@ import { SupportedLanguage, TRANSLATIONS } from '../data/translations';
 
 const ADMIN_TOKEN_KEY = 'margo_admin_token';
 
+function readStoredToken(): string | null {
+  try {
+    const fromLocal = localStorage.getItem(ADMIN_TOKEN_KEY);
+    if (fromLocal) return fromLocal;
+    // Migrate older sessionStorage sessions so login does not "fall off" after refresh/tab restore
+    const fromSession = sessionStorage.getItem(ADMIN_TOKEN_KEY);
+    if (fromSession) {
+      localStorage.setItem(ADMIN_TOKEN_KEY, fromSession);
+      sessionStorage.removeItem(ADMIN_TOKEN_KEY);
+      return fromSession;
+    }
+  } catch {
+    // ignore
+  }
+  return null;
+}
+
+function writeStoredToken(token: string) {
+  try {
+    localStorage.setItem(ADMIN_TOKEN_KEY, token);
+    sessionStorage.removeItem(ADMIN_TOKEN_KEY);
+  } catch {
+    // ignore
+  }
+}
+
+function clearStoredToken() {
+  try {
+    localStorage.removeItem(ADMIN_TOKEN_KEY);
+    sessionStorage.removeItem(ADMIN_TOKEN_KEY);
+  } catch {
+    // ignore
+  }
+}
+
 interface AtelierDashboardProps {
   onBackToApp: () => void;
   lang?: SupportedLanguage;
@@ -31,13 +66,7 @@ function authHeaders(token: string): HeadersInit {
 
 export const AtelierDashboard: React.FC<AtelierDashboardProps> = ({ onBackToApp, lang = 'ru' }) => {
   const t = TRANSLATIONS[lang];
-  const [token, setToken] = useState<string | null>(() => {
-    try {
-      return sessionStorage.getItem(ADMIN_TOKEN_KEY);
-    } catch {
-      return null;
-    }
-  });
+  const [token, setToken] = useState<string | null>(() => readStoredToken());
   const [password, setPassword] = useState('');
   const [loginError, setLoginError] = useState<string | null>(null);
   const [loggingIn, setLoggingIn] = useState(false);
@@ -52,21 +81,27 @@ export const AtelierDashboard: React.FC<AtelierDashboardProps> = ({ onBackToApp,
   const [actionError, setActionError] = useState<string | null>(null);
   const [acting, setActing] = useState(false);
 
-  const fetchConsultations = async (authToken = token) => {
+  const clearSession = (message?: string) => {
+    setToken(null);
+    clearStoredToken();
+    if (message) setLoginError(message);
+  };
+
+  const fetchConsultations = async (authToken = token, attempt = 0) => {
     if (!authToken) return;
-    setLoading(true);
+    if (attempt === 0) setLoading(true);
     try {
       const res = await fetch('/api/consultations', {
         headers: { Authorization: `Bearer ${authToken}` },
       });
-      if (res.status === 401 || res.status === 503) {
-        setToken(null);
-        try {
-          sessionStorage.removeItem(ADMIN_TOKEN_KEY);
-        } catch {
-          // ignore
-        }
-        setLoginError(res.status === 503 ? t.adminLoginErrorNotConfigured : t.adminSessionExpired);
+      // Only drop the session on a confirmed unauthorized response — never on 5xx / network blips
+      if (res.status === 401) {
+        clearSession(t.adminSessionExpired);
+        return;
+      }
+      if ((res.status === 503 || res.status >= 500) && attempt < 1) {
+        await new Promise((r) => setTimeout(r, 500));
+        await fetchConsultations(authToken, attempt + 1);
         return;
       }
       if (res.ok) {
@@ -75,8 +110,14 @@ export const AtelierDashboard: React.FC<AtelierDashboardProps> = ({ onBackToApp,
       }
     } catch (err) {
       console.error('Failed to load consultations:', err);
+      if (attempt < 1) {
+        await new Promise((r) => setTimeout(r, 500));
+        await fetchConsultations(authToken, attempt + 1);
+        return;
+      }
+      // Keep token — transient offline should not force re-login
     } finally {
-      setLoading(false);
+      if (attempt === 0) setLoading(false);
     }
   };
 
@@ -101,21 +142,13 @@ export const AtelierDashboard: React.FC<AtelierDashboardProps> = ({ onBackToApp,
         } else if (res.status === 401) {
           setLoginError(t.adminLoginErrorUnauthorized);
         } else if (res.status >= 500) {
-          setLoginError(
-            lang === 'ru'
-              ? 'Ошибка сервера при входе. На Vercel добавьте ADMIN_PASSWORD в Environment Variables и сделайте Redeploy. Локально пароль: margo-admin'
-              : 'Server error on login. On Vercel set ADMIN_PASSWORD in Environment Variables and redeploy. Local password: margo-admin'
-          );
+          setLoginError(t.adminLoginError);
         } else {
           setLoginError(typeof data.error === 'string' ? data.error : t.adminLoginError);
         }
         return;
       }
-      try {
-        sessionStorage.setItem(ADMIN_TOKEN_KEY, data.token);
-      } catch {
-        // ignore
-      }
+      writeStoredToken(data.token);
       setToken(data.token);
       setPassword('');
     } catch {
@@ -126,13 +159,8 @@ export const AtelierDashboard: React.FC<AtelierDashboardProps> = ({ onBackToApp,
   };
 
   const handleLogout = () => {
-    setToken(null);
     setConsultations([]);
-    try {
-      sessionStorage.removeItem(ADMIN_TOKEN_KEY);
-    } catch {
-      // ignore
-    }
+    clearSession();
   };
 
   const updateStatus = async (id: string, status: any) => {

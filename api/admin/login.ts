@@ -1,13 +1,18 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createHmac, timingSafeEqual } from 'node:crypto';
 
+/** Keep in sync with lib/admin-auth.ts (inlined so Vercel login never depends on broken imports). */
+const BUILTIN_ADMIN_PASSWORD = 'margo-admin';
+const SESSION_PURPOSE = 'margo-admin-session-v3';
+const MAX_AGE_SEC = 90 * 24 * 60 * 60;
+
 function normalizeSecret(value: unknown): string {
   if (typeof value !== 'string') return '';
   return value.normalize('NFKC').replace(/[\u200B-\u200D\uFEFF]/g, '').trim();
 }
 
 function adminSecret(): string {
-  return normalizeSecret(process.env.ADMIN_PASSWORD);
+  return normalizeSecret(process.env.ADMIN_PASSWORD) || BUILTIN_ADMIN_PASSWORD;
 }
 
 function safeEqual(a: string, b: string): boolean {
@@ -18,7 +23,10 @@ function safeEqual(a: string, b: string): boolean {
 }
 
 function createAdminToken(secret: string): string {
-  return createHmac('sha256', secret).update('margo-admin-session-v2').digest('hex');
+  const issuedAt = Math.floor(Date.now() / 1000);
+  const payload = `${SESSION_PURPOSE}.${issuedAt}`;
+  const sig = createHmac('sha256', secret).update(payload).digest('hex');
+  return `${issuedAt}.${sig}`;
 }
 
 export default function handler(req: VercelRequest, res: VercelResponse) {
@@ -29,16 +37,18 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     const secret = adminSecret();
-    if (!secret) {
-      return res.status(503).json({
-        error: 'Admin password is not configured. Set ADMIN_PASSWORD in environment.',
-      });
-    }
-
     const password = normalizeSecret(
       typeof req.body === 'object' && req.body
         ? (req.body as { password?: unknown }).password
-        : ''
+        : typeof req.body === 'string'
+          ? (() => {
+              try {
+                return (JSON.parse(req.body) as { password?: unknown }).password;
+              } catch {
+                return '';
+              }
+            })()
+          : ''
     );
 
     if (!password || !safeEqual(password, secret)) {
@@ -48,6 +58,7 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(200).json({
       success: true,
       token: createAdminToken(secret),
+      expiresInDays: Math.floor(MAX_AGE_SEC / 86400),
     });
   } catch (error: any) {
     console.error('[admin/login]', error?.message || error);
