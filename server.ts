@@ -70,7 +70,7 @@ app.get('/api/health', (_req, res) => {
 
 app.post('/api/admin/login', (req, res) => {
   const ip = clientIpFromHeaders(req.headers as Record<string, string | string[] | undefined>, req.ip || 'unknown');
-  const limit = consumeRateLimit(`admin-login:${ip}`, 8, 15 * 60 * 1000);
+  const limit = consumeRateLimit(`admin-login:${ip}`, 20, 15 * 60 * 1000);
   if (!limit.allowed) {
     res.setHeader('Retry-After', String(limit.retryAfterSec));
     return res.status(429).json({ error: 'Too many login attempts. Try again later.' });

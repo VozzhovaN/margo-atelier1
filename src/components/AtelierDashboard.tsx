@@ -129,18 +129,30 @@ export const AtelierDashboard: React.FC<AtelierDashboardProps> = ({ onBackToApp,
     e.preventDefault();
     setLoggingIn(true);
     setLoginError(null);
+    // Drop any stale token before a fresh login attempt
+    clearStoredToken();
     try {
       const res = await fetch('/api/admin/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ password: password.trim() }),
       });
-      const data = await res.json().catch(() => ({}));
+      const rawText = await res.text();
+      let data: any = {};
+      try {
+        data = rawText ? JSON.parse(rawText) : {};
+      } catch {
+        data = {};
+      }
       if (!res.ok || !data.token) {
         if (res.status === 503) {
           setLoginError(t.adminLoginErrorNotConfigured);
         } else if (res.status === 401) {
-          setLoginError(t.adminLoginErrorUnauthorized);
+          setLoginError(
+            lang === 'ru'
+              ? 'Неверный пароль. Проверьте раскладку EN и введите: margo-admin'
+              : 'Wrong password. Use EN keyboard layout: margo-admin'
+          );
         } else if (res.status === 429) {
           setLoginError(
             lang === 'ru'
@@ -148,7 +160,11 @@ export const AtelierDashboard: React.FC<AtelierDashboardProps> = ({ onBackToApp,
               : 'Too many login attempts. Please wait a few minutes.'
           );
         } else if (res.status >= 500) {
-          setLoginError(t.adminLoginError);
+          setLoginError(
+            lang === 'ru'
+              ? 'Сервер админки недоступен. Откройте http://localhost:3000 (локально пароль работает) или задайте ADMIN_PASSWORD на Vercel и сделайте Redeploy.'
+              : 'Admin server error. Use http://localhost:3000 or set ADMIN_PASSWORD on Vercel and redeploy.'
+          );
         } else {
           setLoginError(typeof data.error === 'string' ? data.error : t.adminLoginError);
         }
@@ -291,8 +307,18 @@ export const AtelierDashboard: React.FC<AtelierDashboardProps> = ({ onBackToApp,
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder={t.adminPasswordPlaceholder}
                 autoComplete="current-password"
+                autoCapitalize="off"
+                autoCorrect="off"
+                spellCheck={false}
+                lang="en"
+                inputMode="text"
                 className="mt-1.5 w-full px-3.5 py-2.5 rounded-xl bg-[#F6F1EA] border border-[#D9D1C5] text-sm text-[#1A1816] focus:outline-none focus:ring-1 focus:ring-[#1A1816]"
               />
+              <p className="mt-1.5 text-[10px] text-[#8A8177]">
+                {lang === 'ru'
+                  ? 'Пароль латинскими буквами (раскладка EN): margo-admin'
+                  : 'Password in Latin characters (EN layout): margo-admin'}
+              </p>
             </label>
             {loginError && <p className="text-xs text-[#A83D3D]">{loginError}</p>}
             <button
