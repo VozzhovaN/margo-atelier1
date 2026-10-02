@@ -213,6 +213,7 @@ export interface TranslationDict {
   aiConsultationFocus: string;
 
   // CTAs in Proposal
+  sendDossierChoice: string;
   btnBookWhatsapp: string;
   btnSendTelegram: string;
   btnSending: string;
@@ -492,9 +493,10 @@ export const TRANSLATIONS: Record<SupportedLanguage, TranslationDict> = {
     aiArchitecturalDetails: 'Архитектурные Особенности Кроя',
     aiConsultationFocus: 'Фокус Первой Консультации в Ателье',
 
-    btnBookWhatsapp: 'Записаться на консультацию',
-    btnSendTelegram: 'Отправить досье в Ателье',
-    btnSending: 'Отправка в Ателье...',
+    sendDossierChoice: 'Отправить досье в ателье',
+    btnBookWhatsapp: 'Через WhatsApp',
+    btnSendTelegram: 'Через Telegram',
+    btnSending: 'Отправка...',
     btnSent: 'Досье отправлено',
     thankYouOrderLabel: 'Номер заказа',
     thankYouMessage:
@@ -768,8 +770,9 @@ export const TRANSLATIONS: Record<SupportedLanguage, TranslationDict> = {
     aiArchitecturalDetails: 'Architectural Cut Details',
     aiConsultationFocus: 'Atelier Consultation Focus Points',
 
-    btnBookWhatsapp: 'Book a consultation',
-    btnSendTelegram: 'Send dossier to the atelier',
+    sendDossierChoice: 'Send dossier to the atelier',
+    btnBookWhatsapp: 'Via WhatsApp',
+    btnSendTelegram: 'Via Telegram',
     btnSending: 'Sending...',
     btnSent: 'Dossier sent',
     thankYouOrderLabel: 'Order number',

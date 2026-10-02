@@ -68,18 +68,22 @@ export const SummaryView: React.FC<SummaryViewProps> = ({
   const [submissionSuccess, setSubmissionSuccess] = useState<boolean>(false);
   const [showThankYou, setShowThankYou] = useState<boolean>(false);
   const [submitting, setSubmitting] = useState<boolean>(false);
+  const [submittingChannel, setSubmittingChannel] = useState<'whatsapp' | 'telegram' | null>(null);
   const [dossierId, setDossierId] = useState<string>(dossier.id || 'MARGO-8492');
   const [copiedLink, setCopiedLink] = useState(false);
 
-  // Submit Consultation to Backend & Trigger Telegram Bot notification
-  const handleSendToAtelier = async () => {
+  // Submit dossier server-side — no redirect to WhatsApp / Telegram apps
+  const handleSendToAtelier = async (preferredChannel: 'whatsapp' | 'telegram') => {
+    if (submitting || submissionSuccess) return;
     setSubmitting(true);
+    setSubmittingChannel(preferredChannel);
     try {
       const res = await fetch('/api/consultations', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...dossier,
+          preferredChannel,
           silhouetteLabel:
             silhouetteLabel === (lang === 'ru' ? 'Не выбран' : 'Not selected')
               ? ''
@@ -107,43 +111,9 @@ export const SummaryView: React.FC<SummaryViewProps> = ({
       console.error('Submission error:', err);
     } finally {
       setSubmitting(false);
+      setSubmittingChannel(null);
     }
   };
-
-  // Generate WhatsApp prefilled message
-  const whatsappMessage = encodeURIComponent(
-    lang === 'ru'
-      ? `Здравствуйте, MARGO Atelier!
-
-Я заполнила консультационное досье [#${dossierId}]:
-• Повод: ${dossier.occasion || 'Индивидуальный заказ'}
-• Дата: ${dossier.date || dossier.timeline || 'В ближайшие месяцы'}
-• Формат: ${[...(dossier.settings || []), dossier.settingOther, dossier.eventCity].filter(Boolean).join(', ') || '—'}
-• Силуэт: ${silhouetteLabel}
-• Эстетика: ${styleLabel}
-• Палитра: ${colourLabel}${dossier.customColorNote ? `\n• Пожелания по цвету: ${dossier.customColorNote}` : ''}
-• Бюджетная категория: ${dossier.budget || 'Couture Bespoke'}
-• Имя клиента: ${dossier.contact.fullName}
-• Локация: ${dossier.contact.atelierLocation}
-
-Хочу согласовать дату и время первой примерки / консультации в салоне.`
-      : `Hello MARGO Atelier,
-
-I have completed my consultation preparation dossier [#${dossierId}]:
-• Occasion: ${dossier.occasion || 'Atelier Consultation'}
-• Target Date: ${dossier.date || dossier.timeline || 'Upcoming'}
-• Format: ${[...(dossier.settings || []), dossier.settingOther, dossier.eventCity].filter(Boolean).join(', ') || '—'}
-• Preferred Silhouette: ${silhouetteLabel}
-• Style Essence: ${styleLabel}
-• Palette: ${colourLabel}${dossier.customColorNote ? `\n• Colour notes: ${dossier.customColorNote}` : ''}
-• Budget Tier: ${dossier.budget || 'Couture Bespoke'}
-• Client Name: ${dossier.contact.fullName}
-• Location: ${dossier.contact.atelierLocation}
-
-I would like to book my first private consultation appointment.`
-  );
-
-  const whatsappUrl = `https://wa.me/393498124490?text=${whatsappMessage}`;
 
   const handleShare = () => {
     navigator.clipboard.writeText(window.location.href);
@@ -352,45 +322,65 @@ I would like to book my first private consultation appointment.`
 
       {/* PRIMARY CTA ACTIONS */}
       <motion.div variants={microFadeUp} className="space-y-3 mb-8">
-        {/* Book / WhatsApp Atelier Button */}
-        <a
-          id="whatsapp-booking-cta"
-          href={whatsappUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          onClick={() => {
-            if (!submissionSuccess) handleSendToAtelier();
-          }}
-          className="w-full py-4 px-6 rounded-full bg-[#25D366] text-white hover:bg-[#20BE5C] active:scale-[0.99] transition-all flex items-center justify-center gap-3 text-xs sm:text-sm font-medium tracking-[0.18em] uppercase shadow-lg shadow-green-900/10 cursor-pointer"
-        >
-          <MessageCircle className="w-4 h-4" />
-          <span>{t.btnBookWhatsapp}</span>
-        </a>
+        <p className="text-center text-[11px] sm:text-xs uppercase tracking-[0.2em] text-[#6B5E53] font-medium">
+          {t.sendDossierChoice}
+        </p>
 
-        {/* Transmit to Telegram Bot & Save */}
-        <button
-          id="telegram-dossier-btn"
-          type="button"
-          disabled={submitting || submissionSuccess}
-          onClick={handleSendToAtelier}
-          className={`w-full py-3.5 px-6 rounded-full text-xs sm:text-sm font-medium tracking-[0.18em] uppercase transition-all flex items-center justify-center gap-2.5 border cursor-pointer ${
-            submissionSuccess
-              ? 'bg-[#EAE2D6] text-[#61564C] border-[#D9D1C5]'
-              : 'bg-[#1A1816] text-[#FAF8F5] border-[#1A1816] hover:bg-[#2C2723] active:scale-[0.99]'
-          }`}
-        >
-          {submissionSuccess ? (
-            <>
-              <Check className="w-4 h-4 text-[#2E8B4A]" />
-              <span>{t.btnSent}</span>
-            </>
-          ) : (
-            <>
-              <Send className="w-4 h-4 text-[#D8CEBF]" />
-              <span>{submitting ? t.btnSending : t.btnSendTelegram}</span>
-            </>
-          )}
-        </button>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          {/* WhatsApp — server delivery, no wa.me redirect */}
+          <button
+            id="whatsapp-booking-cta"
+            type="button"
+            disabled={submitting || submissionSuccess}
+            onClick={() => handleSendToAtelier('whatsapp')}
+            className={`w-full py-4 px-5 rounded-full text-xs font-medium tracking-[0.14em] uppercase transition-all flex items-center justify-center gap-2.5 border cursor-pointer ${
+              submissionSuccess
+                ? 'bg-[#EAE2D6] text-[#61564C] border-[#D9D1C5]'
+                : 'bg-[#25D366] text-white border-[#25D366] hover:bg-[#20BE5C] active:scale-[0.99] shadow-lg shadow-green-900/10'
+            }`}
+          >
+            {submissionSuccess ? (
+              <>
+                <Check className="w-4 h-4 shrink-0 text-[#2E8B4A]" />
+                <span>{t.btnSent}</span>
+              </>
+            ) : (
+              <>
+                <MessageCircle className="w-4 h-4 shrink-0" />
+                <span>
+                  {submitting && submittingChannel === 'whatsapp' ? t.btnSending : t.btnBookWhatsapp}
+                </span>
+              </>
+            )}
+          </button>
+
+          {/* Telegram */}
+          <button
+            id="telegram-dossier-btn"
+            type="button"
+            disabled={submitting || submissionSuccess}
+            onClick={() => handleSendToAtelier('telegram')}
+            className={`w-full py-4 px-5 rounded-full text-xs font-medium tracking-[0.14em] uppercase transition-all flex items-center justify-center gap-2.5 border cursor-pointer ${
+              submissionSuccess
+                ? 'bg-[#EAE2D6] text-[#61564C] border-[#D9D1C5]'
+                : 'bg-[#229ED9] text-white border-[#229ED9] hover:bg-[#1B8BC0] active:scale-[0.99] shadow-lg shadow-sky-900/10'
+            }`}
+          >
+            {submissionSuccess ? (
+              <>
+                <Check className="w-4 h-4 shrink-0 text-[#2E8B4A]" />
+                <span>{t.btnSent}</span>
+              </>
+            ) : (
+              <>
+                <Send className="w-4 h-4 shrink-0" />
+                <span>
+                  {submitting && submittingChannel === 'telegram' ? t.btnSending : t.btnSendTelegram}
+                </span>
+              </>
+            )}
+          </button>
+        </div>
 
         <button
           id="share-dossier-btn"

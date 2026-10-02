@@ -11,15 +11,14 @@ import carouselEvening from '../assets/images/carousel/margo_occasion_evening.jp
 import carouselSpecial from '../assets/images/carousel/margo_occasion_special.png';
 import carouselCustom from '../assets/images/carousel/margo_occasion_custom.jpg';
 import carouselColumn from '../assets/images/carousel/margo_silhouette_column.png';
-import carouselAline from '../assets/images/carousel/margo_silhouette_aline.jpg';
-import carouselCoatdress from '../assets/images/carousel/margo_silhouette_coatdress.jpg';
-import carouselMermaid from '../assets/images/carousel/margo_silhouette_mermaid.jpg';
 import carouselSlipBlack from '../assets/images/carousel/margo_silhouette_slip_black.jpg';
 import carouselFabric from '../assets/images/carousel/margo_fabric_sage_drape.png';
-import carouselQuietLuxury from '../assets/images/carousel/margo_style_quiet_luxury.jpg';
-import carouselContemporaryRomantic from '../assets/images/carousel/margo_style_contemporary_romantic.jpg';
-import carouselSculptural from '../assets/images/carousel/margo_style_sculptural.jpg';
-import carouselSensualSiren from '../assets/images/carousel/margo_style_sensual_siren.jpg';
+import carouselBlueBlazer from '../assets/images/carousel/margo_carousel_blue_blazer.jpg';
+import carouselBurgundySea from '../assets/images/carousel/margo_carousel_burgundy_sea.png';
+import carouselSandBride from '../assets/images/carousel/margo_carousel_sand_bride.png';
+import carouselOrangeTerrace from '../assets/images/carousel/margo_carousel_orange_terrace.png';
+import carouselPinkDawn from '../assets/images/carousel/margo_carousel_pink_dawn.png';
+import carouselCreamTerrace from '../assets/images/carousel/margo_carousel_cream_terrace.png';
 
 interface StepReferencesProps {
   references: string[];
@@ -41,15 +40,14 @@ const CAROUSEL_IMAGES: GalleryItem[] = [
   { id: 'special', image: carouselSpecial },
   { id: 'custom', image: carouselCustom },
   { id: 'column', image: carouselColumn },
-  { id: 'aline', image: carouselAline },
   { id: 'slip', image: carouselSlipBlack },
-  { id: 'coatdress', image: carouselCoatdress },
-  { id: 'mermaid', image: carouselMermaid },
-  { id: 'quiet_luxury', image: carouselQuietLuxury },
-  { id: 'contemporary_romantic', image: carouselContemporaryRomantic },
-  { id: 'sculptural', image: carouselSculptural },
-  { id: 'sensual_siren', image: carouselSensualSiren },
   { id: 'fabric', image: carouselFabric },
+  { id: 'blue_blazer', image: carouselBlueBlazer },
+  { id: 'burgundy_sea', image: carouselBurgundySea },
+  { id: 'sand_bride', image: carouselSandBride },
+  { id: 'orange_terrace', image: carouselOrangeTerrace },
+  { id: 'pink_dawn', image: carouselPinkDawn },
+  { id: 'cream_terrace', image: carouselCreamTerrace },
 ];
 
 export const StepReferences: React.FC<StepReferencesProps> = ({

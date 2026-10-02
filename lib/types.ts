@@ -46,6 +46,7 @@ export interface Consultation {
   consentAccepted?: boolean;
   consentAcceptedAt?: string;
   consentVersion?: string;
+  preferredChannel?: 'whatsapp' | 'telegram';
   status: 'new' | 'contacted' | 'scheduled' | 'fitting' | 'completed';
   archived?: boolean;
   archivedAt?: string;

@@ -67,6 +67,7 @@ Copy-Item .env.example .env
 
 - `GEMINI_API_KEY` — живой AI Style Direction; **можно оставить пустым**, тогда сработает встроенный движок ателье
 - `TELEGRAM_BOT_TOKEN` и `TELEGRAM_CHAT_ID` — уведомления о заявках в Telegram; **можно оставить пустыми** для первого запуска
+- `WHATSAPP_ACCESS_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID`, `WHATSAPP_NOTIFY_TO` — досье в WhatsApp Business без открытия wa.me; **можно оставить пустыми** (тогда при выборе WhatsApp сработает резерв через Telegram/email)
 - `PORT=3000` — меняйте, только если порт занят
 - `APP_URL` — нужен уже на сервере с доменом, локально не обязателен
 
@@ -125,6 +126,7 @@ NODE_ENV=production npm start
 - `PORT` — порт процесса (или тот, что выдаёт хостинг)
 - `GEMINI_API_KEY` — если нужен живой Gemini; иначе сработает встроенный движок
 - `TELEGRAM_BOT_TOKEN` и `TELEGRAM_CHAT_ID` — чтобы досье приходили в Telegram
+- `WHATSAPP_ACCESS_TOKEN` и `WHATSAPP_PHONE_NUMBER_ID` — чтобы досье уходили в WhatsApp Business без перехода клиента в приложение
 - `APP_URL` — публичный HTTPS-адрес, например `https://atelier.example.com`
 
 Фронтенд отдаётся из `dist/`, API — `/api/...`.

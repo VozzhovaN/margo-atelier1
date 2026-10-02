@@ -127,6 +127,10 @@ export function createConsultationFromBody(body: any): Consultation {
     consentAccepted: Boolean(body.consentAccepted),
     consentAcceptedAt: body.consentAcceptedAt || '',
     consentVersion: body.consentVersion || '',
+    preferredChannel:
+      body.preferredChannel === 'whatsapp' || body.preferredChannel === 'telegram'
+        ? body.preferredChannel
+        : undefined,
     status: 'new',
   };
 }
@@ -220,6 +224,13 @@ export function formatConsultationMessage(consultation: Consultation): string {
     ? `Согласие: да (${consultation.consentAcceptedAt || '—'}; v${consultation.consentVersion || '—'})`
     : 'Согласие: не отмечено';
 
+  const channelLine =
+    consultation.preferredChannel === 'whatsapp'
+      ? 'Канал отправки: WhatsApp'
+      : consultation.preferredChannel === 'telegram'
+        ? 'Канал отправки: Telegram'
+        : '';
+
   const header = consultation.id
     ? `NEW MARGO ATELIER CONSULTATION\nID: ${consultation.id}`
     : 'NEW MARGO ATELIER CONSULTATION';
@@ -237,7 +248,7 @@ export function formatConsultationMessage(consultation: Consultation): string {
 Приоритеты: ${priorities}
 Фото-референсы: ${refsCount}${refNotes}
 Контакты: ${contactStr}
-${consentLine}
+${consentLine}${channelLine ? `\n${channelLine}` : ''}
 
 AI STYLE DIRECTION:
 ${aiSummary}`;
@@ -348,6 +359,66 @@ export async function sendTelegramNotification(consultation: Consultation): Prom
   }
 }
 
+export async function sendWhatsAppNotification(consultation: Consultation): Promise<boolean> {
+  const token = process.env.WHATSAPP_ACCESS_TOKEN?.trim();
+  const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID?.trim();
+  const notifyTo = (process.env.WHATSAPP_NOTIFY_TO || '393498124490').replace(/\D/g, '');
+
+  if (!token || !phoneNumberId) {
+    console.info(
+      '[WhatsApp] WHATSAPP_ACCESS_TOKEN or WHATSAPP_PHONE_NUMBER_ID not configured. Skipping.'
+    );
+    return false;
+  }
+
+  if (!notifyTo) {
+    console.info('[WhatsApp] WHATSAPP_NOTIFY_TO is empty. Skipping.');
+    return false;
+  }
+
+  try {
+    const text = formatConsultationMessage(consultation);
+    // WhatsApp text body limit is 4096 characters
+    const body = text.length > 4000 ? `${text.slice(0, 3990)}\n…` : text;
+    const url = `https://graph.facebook.com/v21.0/${phoneNumberId}/messages`;
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 12000);
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        messaging_product: 'whatsapp',
+        to: notifyTo,
+        type: 'text',
+        text: { preview_url: false, body },
+      }),
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeout);
+
+    const data: any = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      console.error(
+        `[WhatsApp] Failed to send notification (status: ${response.status}):`,
+        data?.error?.message || data || 'Unknown WhatsApp API error'
+      );
+      return false;
+    }
+
+    console.info(`[WhatsApp] Successfully delivered notification for dossier ${consultation.id}`);
+    return true;
+  } catch (error: any) {
+    console.error('[WhatsApp] Dispatch error:', error?.message || 'Network failure');
+    return false;
+  }
+}
+
 export async function submitConsultation(body: any) {
   const newConsultation = createConsultationFromBody(body);
   const list = loadConsultations();
@@ -358,14 +429,36 @@ export async function submitConsultation(body: any) {
     `[MARGO Atelier Engine] New Consultation Dossier: ${newConsultation.contact.name} (${newConsultation.id})`
   );
 
+  const channel = newConsultation.preferredChannel;
   let telegramNotificationSent = false;
+  let whatsappNotificationSent = false;
   let emailNotificationSent = false;
-  try {
-    telegramNotificationSent = await sendTelegramNotification(newConsultation);
-  } catch (tgErr: any) {
-    console.error('[Telegram] Unexpected notification error:', tgErr?.message || 'Error');
-    telegramNotificationSent = false;
+
+  // Deliver to the channel the client chose; always keep email as atelier backup.
+  if (channel === 'whatsapp') {
+    try {
+      whatsappNotificationSent = await sendWhatsAppNotification(newConsultation);
+    } catch (waErr: any) {
+      console.error('[WhatsApp] Unexpected notification error:', waErr?.message || 'Error');
+      whatsappNotificationSent = false;
+    }
+    // Fallback: if WhatsApp Cloud API is not wired yet, still ping Telegram so the lead is not lost.
+    if (!whatsappNotificationSent) {
+      try {
+        telegramNotificationSent = await sendTelegramNotification(newConsultation);
+      } catch (tgErr: any) {
+        console.error('[Telegram] Fallback notification error:', tgErr?.message || 'Error');
+      }
+    }
+  } else {
+    try {
+      telegramNotificationSent = await sendTelegramNotification(newConsultation);
+    } catch (tgErr: any) {
+      console.error('[Telegram] Unexpected notification error:', tgErr?.message || 'Error');
+      telegramNotificationSent = false;
+    }
   }
+
   try {
     emailNotificationSent = await sendAdminDossierEmail(newConsultation);
   } catch (mailErr: any) {
@@ -373,17 +466,13 @@ export async function submitConsultation(body: any) {
     emailNotificationSent = false;
   }
 
-  const clientName = newConsultation.contact.fullName || newConsultation.contact.name;
-
   return {
     success: true,
     consultation: newConsultation,
     telegramNotificationSent,
+    whatsappNotificationSent,
     emailNotificationSent,
     persisted: !isVercel,
-    whatsappLink: `https://wa.me/393498124490?text=${encodeURIComponent(
-      `Hello MARGO Atelier, I have prepared my consultation dossier #${newConsultation.id} for ${newConsultation.occasion} (${clientName}).`
-    )}`,
   };
 }
 
