@@ -68,8 +68,11 @@ app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', atelier: 'MARGO Atelier', timestamp: new Date().toISOString() });
 });
 
-app.post('/api/admin/login', (req, res) => {
-  const ip = clientIpFromHeaders(req.headers as Record<string, string | string[] | undefined>, req.ip || 'unknown');
+function handleAdminLogin(req: express.Request, res: express.Response) {
+  const ip = clientIpFromHeaders(
+    req.headers as Record<string, string | string[] | undefined>,
+    req.ip || 'unknown'
+  );
   const limit = consumeRateLimit(`admin-login:${ip}`, 20, 15 * 60 * 1000);
   if (!limit.allowed) {
     res.setHeader('Retry-After', String(limit.retryAfterSec));
@@ -85,7 +88,10 @@ app.post('/api/admin/login', (req, res) => {
     return res.status(401).json({ error: 'Invalid password' });
   }
   return res.json({ success: true, token: createAdminToken(), expiresInDays: 90 });
-});
+}
+
+app.post('/api/admin/login', handleAdminLogin);
+app.post('/api/login', handleAdminLogin);
 
 app.post('/api/gemini/style-direction', async (req, res) => {
   try {

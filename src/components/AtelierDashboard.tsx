@@ -132,7 +132,7 @@ export const AtelierDashboard: React.FC<AtelierDashboardProps> = ({ onBackToApp,
     // Drop any stale token before a fresh login attempt
     clearStoredToken();
     try {
-      const res = await fetch('/api/admin/login', {
+      const res = await fetch('/api/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ password: password.trim() }),
