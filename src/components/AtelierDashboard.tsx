@@ -100,6 +100,12 @@ export const AtelierDashboard: React.FC<AtelierDashboardProps> = ({ onBackToApp,
           setLoginError(t.adminLoginErrorNotConfigured);
         } else if (res.status === 401) {
           setLoginError(t.adminLoginErrorUnauthorized);
+        } else if (res.status >= 500) {
+          setLoginError(
+            lang === 'ru'
+              ? 'Ошибка сервера при входе. На Vercel добавьте ADMIN_PASSWORD в Environment Variables и сделайте Redeploy. Локально пароль: margo-admin'
+              : 'Server error on login. On Vercel set ADMIN_PASSWORD in Environment Variables and redeploy. Local password: margo-admin'
+          );
         } else {
           setLoginError(typeof data.error === 'string' ? data.error : t.adminLoginError);
         }

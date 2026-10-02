@@ -1,4 +1,3 @@
-import nodemailer from 'nodemailer';
 import type { Consultation } from './types';
 
 function smtpConfig() {
@@ -37,6 +36,8 @@ export async function sendAdminDossierEmail(consultation: Consultation): Promise
   }
 
   try {
+    const nodemailerMod = await import('nodemailer');
+    const nodemailer = nodemailerMod.default ?? nodemailerMod;
     const transport = nodemailer.createTransport({
       host: smtp.host,
       port: smtp.port,
