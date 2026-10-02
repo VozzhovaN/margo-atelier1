@@ -106,6 +106,9 @@ export const SummaryView: React.FC<SummaryViewProps> = ({
         }
         setSubmissionSuccess(true);
         setShowThankYou(true);
+      } else {
+        const data = await res.json().catch(() => ({}));
+        console.error('Submission rejected:', res.status, data?.error || data);
       }
     } catch (err) {
       console.error('Submission error:', err);
@@ -184,7 +187,7 @@ export const SummaryView: React.FC<SummaryViewProps> = ({
 
       {/* Primary Hero Moodboard Card */}
       <motion.div variants={microFadeUp} className="relative rounded-3xl overflow-hidden border border-[#E8E1D6] shadow-xl bg-[#FAF8F5] mb-6 sm:mb-8">
-        {/* Split Visual Top */}
+        {/* Visual only — no text overlay on the photo */}
         <div className="relative h-64 sm:h-72 w-full overflow-hidden bg-[#EAE2D8]">
           <img
             src={occasionImg}
@@ -192,34 +195,31 @@ export const SummaryView: React.FC<SummaryViewProps> = ({
             referrerPolicy="no-referrer"
             className="w-full h-full object-contain object-center"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#181512]/90 via-[#181512]/30 to-transparent" />
+        </div>
 
-          {/* Top Pill Tags */}
-          <div className="absolute top-4 left-4 right-4 flex items-center justify-between">
-            <span className="px-3 py-1 rounded-full bg-[#FAF8F5]/90 backdrop-blur-md text-[#1A1816] text-[10px] uppercase tracking-[0.2em] font-medium border border-white/50">
+        {/* Caption + curation under the photo */}
+        <div className="p-5 sm:p-6 space-y-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="px-3 py-1 rounded-full bg-[#F3EEE6] border border-[#E2DAD0] text-[#1A1816] text-[10px] uppercase tracking-[0.2em] font-medium">
               {dossier.occasion ? dossier.occasion.replace('_', ' ') : 'Bespoke Atelier'}
             </span>
-            <span className="px-3 py-1 rounded-full bg-black/60 backdrop-blur-md text-[#FAF8F5] text-[10px] uppercase tracking-[0.2em] font-medium">
+            <span className="px-3 py-1 rounded-full bg-[#1A1816] text-[#FAF8F5] text-[10px] uppercase tracking-[0.2em] font-medium">
               {dossier.budget || 'Couture'}
             </span>
           </div>
 
-          {/* Bottom Overlay Title */}
-          <div className="absolute bottom-4 left-4 right-4 text-[#FAF8F5]">
-            <span className="text-[9px] uppercase tracking-[0.3em] text-[#D8CEBF] block mb-0.5">
+          <div>
+            <span className="text-[9px] uppercase tracking-[0.3em] text-[#877C72] block mb-0.5">
               {t.aestheticDirection}
             </span>
-            <h2 className="font-serif text-2xl sm:text-3xl font-light tracking-wide leading-tight">
+            <h2 className="font-serif text-2xl sm:text-3xl font-light text-[#1A1816] tracking-wide leading-tight">
               {silhouetteLabel}
             </h2>
-            <p className="text-xs text-[#EAE2D8] font-light mt-0.5">
+            <p className="text-xs text-[#706459] font-light mt-0.5">
               {styleLabel}
             </p>
           </div>
-        </div>
 
-        {/* Curation Details Grid */}
-        <div className="p-5 sm:p-6 space-y-4">
           {/* Key Parameters */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-left">
             <div className="p-2.5 rounded-xl bg-[#F6F1EA] border border-[#E9E2D8]">

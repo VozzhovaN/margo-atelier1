@@ -141,6 +141,12 @@ export const AtelierDashboard: React.FC<AtelierDashboardProps> = ({ onBackToApp,
           setLoginError(t.adminLoginErrorNotConfigured);
         } else if (res.status === 401) {
           setLoginError(t.adminLoginErrorUnauthorized);
+        } else if (res.status === 429) {
+          setLoginError(
+            lang === 'ru'
+              ? 'Слишком много попыток входа. Подождите несколько минут.'
+              : 'Too many login attempts. Please wait a few minutes.'
+          );
         } else if (res.status >= 500) {
           setLoginError(t.adminLoginError);
         } else {

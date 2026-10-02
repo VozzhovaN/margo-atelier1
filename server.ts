@@ -16,6 +16,7 @@ import {
   requireAdminAuth,
   verifyAdminPassword,
 } from './lib/admin-auth';
+import { clientIpFromHeaders, consumeRateLimit } from './lib/rate-limit';
 import type { Consultation } from './lib/types';
 
 const runningFromDist = /dist[/\\]server\.cjs$/.test(process.argv[1] || '');
@@ -38,6 +39,17 @@ app.disable('x-powered-by');
 app.set('trust proxy', 1);
 app.use(express.json({ limit: '12mb' }));
 
+app.use((req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+  if (req.path.startsWith('/api')) {
+    res.setHeader('Cache-Control', 'no-store');
+  }
+  next();
+});
+
 function denyUnlessAdmin(req: express.Request, res: express.Response): boolean {
   if (!isAdminPasswordConfigured()) {
     res.status(503).json({
@@ -57,6 +69,12 @@ app.get('/api/health', (_req, res) => {
 });
 
 app.post('/api/admin/login', (req, res) => {
+  const ip = clientIpFromHeaders(req.headers as Record<string, string | string[] | undefined>, req.ip || 'unknown');
+  const limit = consumeRateLimit(`admin-login:${ip}`, 8, 15 * 60 * 1000);
+  if (!limit.allowed) {
+    res.setHeader('Retry-After', String(limit.retryAfterSec));
+    return res.status(429).json({ error: 'Too many login attempts. Try again later.' });
+  }
   if (!isAdminPasswordConfigured()) {
     return res.status(503).json({
       error: 'Admin password is not configured. Set ADMIN_PASSWORD in environment.',
@@ -66,7 +84,7 @@ app.post('/api/admin/login', (req, res) => {
   if (!verifyAdminPassword(password)) {
     return res.status(401).json({ error: 'Invalid password' });
   }
-  return res.json({ success: true, token: createAdminToken() });
+  return res.json({ success: true, token: createAdminToken(), expiresInDays: 90 });
 });
 
 app.post('/api/gemini/style-direction', async (req, res) => {
@@ -80,57 +98,82 @@ app.post('/api/gemini/style-direction', async (req, res) => {
 });
 
 app.post('/api/consultations', async (req, res) => {
+  const ip = clientIpFromHeaders(req.headers as Record<string, string | string[] | undefined>, req.ip || 'unknown');
+  const limit = consumeRateLimit(`consult-post:${ip}`, 20, 60 * 60 * 1000);
+  if (!limit.allowed) {
+    res.setHeader('Retry-After', String(limit.retryAfterSec));
+    return res.status(429).json({ error: 'Too many submissions. Try again later.' });
+  }
   try {
     const result = await submitConsultation(req.body || {});
     return res.json(result);
   } catch (error: any) {
+    const status = Number(error?.statusCode) || 500;
+    if (status >= 400 && status < 500) {
+      return res.status(status).json({ error: error?.message || 'Invalid request' });
+    }
     console.error('Error creating consultation:', error);
     return res.status(500).json({ error: 'Failed to create consultation dossier' });
   }
 });
 
-app.get('/api/consultations', (req, res) => {
+app.get('/api/consultations', async (req, res) => {
   if (!denyUnlessAdmin(req, res)) return;
-  const list = loadConsultations();
-  res.json({
-    consultations: list,
-    total: list.length,
-  });
+  try {
+    const list = await loadConsultations();
+    res.json({
+      consultations: list,
+      total: list.length,
+    });
+  } catch (error: any) {
+    const status = Number(error?.statusCode) || 500;
+    return res.status(status).json({ error: error?.message || 'Failed to load consultations' });
+  }
 });
 
-app.patch('/api/consultations/:id', (req, res) => {
+app.patch('/api/consultations/:id', async (req, res) => {
   if (!denyUnlessAdmin(req, res)) return;
   const { id } = req.params;
-  if (req.body?.archive === true) {
-    const archived = archiveConsultation(id);
-    if (!archived) {
+  try {
+    if (req.body?.archive === true) {
+      const archived = await archiveConsultation(id);
+      if (!archived) {
+        return res.status(404).json({ error: 'Consultation not found' });
+      }
+      return res.json({ success: true, consultation: archived });
+    }
+    const { status } = req.body as { status?: Consultation['status'] };
+    const item = await updateConsultationStatus(id, status as Consultation['status']);
+    if (!item) {
       return res.status(404).json({ error: 'Consultation not found' });
     }
-    return res.json({ success: true, consultation: archived });
+    return res.json({ success: true, consultation: item });
+  } catch (error: any) {
+    const code = Number(error?.statusCode) || 500;
+    return res.status(code).json({ error: error?.message || 'Failed to update consultation' });
   }
-  const { status } = req.body as { status?: Consultation['status'] };
-  const item = updateConsultationStatus(id, status as Consultation['status']);
-  if (!item) {
-    return res.status(404).json({ error: 'Consultation not found' });
-  }
-  return res.json({ success: true, consultation: item });
 });
 
-app.delete('/api/consultations/:id', (req, res) => {
+app.delete('/api/consultations/:id', async (req, res) => {
   if (!denyUnlessAdmin(req, res)) return;
   const { id } = req.params;
   const password = String(req.body?.password || '');
   if (!verifyAdminPassword(password)) {
     return res.status(401).json({ error: 'Invalid password' });
   }
-  const result = permanentlyDeleteConsultation(id);
-  if (result === 'not_found') {
-    return res.status(404).json({ error: 'Consultation not found' });
+  try {
+    const result = await permanentlyDeleteConsultation(id);
+    if (result === 'not_found') {
+      return res.status(404).json({ error: 'Consultation not found' });
+    }
+    if (result === 'not_archived') {
+      return res.status(400).json({ error: 'Archive the request before permanent deletion' });
+    }
+    return res.json({ success: true });
+  } catch (error: any) {
+    const code = Number(error?.statusCode) || 500;
+    return res.status(code).json({ error: error?.message || 'Failed to delete consultation' });
   }
-  if (result === 'not_archived') {
-    return res.status(400).json({ error: 'Archive the request before permanent deletion' });
-  }
-  return res.json({ success: true });
 });
 
 app.use('/api', (_req, res) => {

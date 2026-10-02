@@ -1,14 +1,21 @@
 import fs from 'fs';
 import path from 'path';
 import { sendAdminDossierEmail } from './admin-mail';
+import {
+  dbDeleteConsultation,
+  dbGetConsultation,
+  dbInsertConsultation,
+  dbListConsultations,
+  dbUpdateConsultation,
+} from './consultation-db';
+import { assertProductionStorageReady, isSupabaseConfigured } from './supabase';
 import { Consultation } from './types';
 
 /**
  * Persistence:
- * - Locally: data/consultations.json (durable for npm run dev)
- * - On Vercel: in-memory + /tmp best-effort. Serverless instances do not share
- *   durable disk. Ready to swap this module for Supabase later without changing
- *   the frontend.
+ * - Prefer Supabase PostgreSQL when SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY are set
+ * - Local fallback: data/consultations.json (dev only)
+ * - Production / Vercel requires Supabase
  */
 const isVercel = Boolean(process.env.VERCEL);
 
@@ -59,23 +66,29 @@ function writeFileStore(items: Consultation[]): boolean {
   }
 }
 
-export function loadConsultations(): Consultation[] {
+function loadLocalConsultations(): Consultation[] {
   const mem = memoryStore();
   if (mem.length > 0) return mem;
-
   const fromFile = readFileStore();
   if (fromFile) {
     mem.splice(0, mem.length, ...fromFile);
     return mem;
   }
-
   return mem;
 }
 
-export function saveConsultations(items: Consultation[]): boolean {
+function saveLocalConsultations(items: Consultation[]): boolean {
   const mem = memoryStore();
   mem.splice(0, mem.length, ...items);
   return writeFileStore(items);
+}
+
+export async function loadConsultations(): Promise<Consultation[]> {
+  assertProductionStorageReady();
+  if (isSupabaseConfigured()) {
+    return dbListConsultations();
+  }
+  return loadLocalConsultations();
 }
 
 function asJoined(value: unknown): string {
@@ -84,55 +97,120 @@ function asJoined(value: unknown): string {
   return '';
 }
 
+function clip(value: unknown, max: number): string {
+  if (typeof value !== 'string') return '';
+  return value.trim().slice(0, max);
+}
+
+const ALLOWED_REF_MIME = new Set(['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif']);
+const MAX_REF_BYTES = 8 * 1024 * 1024;
+const MAX_REF_COUNT = 3;
+
+/** Accept only safe image data-URLs (or short https URLs for gallery assets). */
+export function sanitizeReferences(input: unknown): string[] {
+  if (!Array.isArray(input)) return [];
+  const out: string[] = [];
+  for (const item of input) {
+    if (typeof item !== 'string') continue;
+    const value = item.trim();
+    if (!value || value.length > MAX_REF_BYTES * 1.4) continue;
+
+    if (value.startsWith('data:')) {
+      const match = value.match(/^data:([^;,]+);base64,([A-Za-z0-9+/=\s]+)$/);
+      if (!match) continue;
+      const mime = match[1].toLowerCase();
+      if (!ALLOWED_REF_MIME.has(mime)) continue;
+      const b64 = match[2].replace(/\s/g, '');
+      const approxBytes = Math.floor((b64.length * 3) / 4);
+      if (approxBytes <= 0 || approxBytes > MAX_REF_BYTES) continue;
+      out.push(`data:${mime};base64,${b64}`);
+    } else if (/^https:\/\//i.test(value) && value.length < 2048) {
+      // Allow remote https image URLs only (no javascript: / data exe payloads)
+      out.push(value);
+    }
+
+    if (out.length >= MAX_REF_COUNT) break;
+  }
+  return out;
+}
+
 export function createConsultationFromBody(body: any): Consultation {
+  const consentAccepted = Boolean(body?.consentAccepted);
   return {
     id: `MARGO-${Math.floor(1000 + Math.random() * 9000)}`,
     createdAt: new Date().toISOString(),
-    occasion: body.occasion || 'Atelier Consultation',
-    date: body.date || '',
-    timeline: body.timeline || 'Flexible',
-    settings: Array.isArray(body.settings) ? body.settings : [],
-    settingOther: body.settingOther || '',
-    eventCity: body.eventCity || '',
-    budget: body.budget || '',
-    silhouette: body.silhouetteLabel || asJoined(body.silhouette) || '',
-    style: body.styleLabel || asJoined(body.style) || '',
+    occasion: clip(body.occasion, 80) || 'Atelier Consultation',
+    date: clip(body.date, 40),
+    timeline: clip(body.timeline, 80) || 'Flexible',
+    settings: Array.isArray(body.settings)
+      ? body.settings.map((s: unknown) => clip(s, 80)).filter(Boolean).slice(0, 12)
+      : [],
+    settingOther: clip(body.settingOther, 200),
+    eventCity: clip(body.eventCity, 120),
+    budget: clip(body.budget, 80),
+    silhouette: clip(body.silhouetteLabel || asJoined(body.silhouette), 200),
+    style: clip(body.styleLabel || asJoined(body.style), 200),
     colors: Array.isArray(body.colors)
-      ? body.colors
+      ? body.colors.map((c: unknown) => clip(c, 60)).filter(Boolean).slice(0, 20)
       : body.colourLabel
         ? String(body.colourLabel)
             .split(',')
             .map((s: string) => s.trim())
             .filter(Boolean)
+            .slice(0, 20)
         : [],
-    customColorNote: typeof body.customColorNote === 'string' ? body.customColorNote : '',
-    measurements: body.measurements || {},
-    references: Array.isArray(body.references) ? body.references.slice(0, 3) : [],
-    referenceNotes: typeof body.referenceNotes === 'string' ? body.referenceNotes : '',
-    priorities: Array.isArray(body.priorities) ? body.priorities : [],
+    customColorNote: clip(body.customColorNote, 500),
+    measurements:
+      body.measurements && typeof body.measurements === 'object' ? body.measurements : {},
+    references: sanitizeReferences(body.references),
+    referenceNotes: clip(body.referenceNotes, 1000),
+    priorities: Array.isArray(body.priorities)
+      ? body.priorities.map((p: unknown) => clip(p, 120)).filter(Boolean).slice(0, 20)
+      : [],
     contact: {
-      name: body.contact?.fullName || body.contact?.name || 'Guest Client',
-      fullName: body.contact?.fullName || body.contact?.name || 'Guest Client',
-      telegram: body.contact?.telegramHandle || body.contact?.telegram || '',
-      telegramHandle: body.contact?.telegramHandle || body.contact?.telegram || '',
-      phone: body.contact?.whatsappPhone || body.contact?.phone || '',
-      whatsappPhone: body.contact?.whatsappPhone || body.contact?.phone || '',
-      email: body.contact?.email || '',
-      consultationType: body.contact?.consultationType || 'atelier',
-      location: body.contact?.atelierLocation || body.contact?.location || '',
-      atelierLocation: body.contact?.atelierLocation || body.contact?.location || '',
-      preferredLanguage: body.contact?.preferredLanguage || 'Русский',
+      name: clip(body.contact?.fullName || body.contact?.name, 120) || 'Guest Client',
+      fullName: clip(body.contact?.fullName || body.contact?.name, 120) || 'Guest Client',
+      telegram: clip(body.contact?.telegramHandle || body.contact?.telegram, 80),
+      telegramHandle: clip(body.contact?.telegramHandle || body.contact?.telegram, 80),
+      phone: clip(body.contact?.whatsappPhone || body.contact?.phone, 40),
+      whatsappPhone: clip(body.contact?.whatsappPhone || body.contact?.phone, 40),
+      email: clip(body.contact?.email, 120),
+      consultationType: body.contact?.consultationType === 'virtual' ? 'virtual' : 'atelier',
+      location: clip(body.contact?.atelierLocation || body.contact?.location, 120),
+      atelierLocation: clip(body.contact?.atelierLocation || body.contact?.location, 120),
+      preferredLanguage: clip(body.contact?.preferredLanguage, 40) || 'Русский',
     },
     aiStyleDirection: body.aiStyleDirection,
-    consentAccepted: Boolean(body.consentAccepted),
-    consentAcceptedAt: body.consentAcceptedAt || '',
-    consentVersion: body.consentVersion || '',
+    consentAccepted,
+    consentAcceptedAt: consentAccepted ? clip(body.consentAcceptedAt, 40) || new Date().toISOString() : '',
+    consentVersion: clip(body.consentVersion, 40),
     preferredChannel:
       body.preferredChannel === 'whatsapp' || body.preferredChannel === 'telegram'
         ? body.preferredChannel
         : undefined,
     status: 'new',
   };
+}
+
+export function assertConsultationPayload(body: any): void {
+  if (!body || typeof body !== 'object') {
+    throw Object.assign(new Error('Invalid payload'), { statusCode: 400 });
+  }
+  if (!Boolean(body.consentAccepted)) {
+    throw Object.assign(new Error('Consent is required'), { statusCode: 400 });
+  }
+  const name = clip(body.contact?.fullName || body.contact?.name, 120);
+  if (!name) {
+    throw Object.assign(new Error('Client name is required'), { statusCode: 400 });
+  }
+  const tg = clip(body.contact?.telegramHandle || body.contact?.telegram, 80);
+  const phone = clip(body.contact?.whatsappPhone || body.contact?.phone, 40);
+  if (!tg && !phone) {
+    throw Object.assign(new Error('Telegram or WhatsApp contact is required'), { statusCode: 400 });
+  }
+  if (Array.isArray(body.references) && body.references.length > MAX_REF_COUNT) {
+    throw Object.assign(new Error('Too many reference images'), { statusCode: 400 });
+  }
 }
 
 export function formatConsultationMessage(consultation: Consultation): string {
@@ -362,7 +440,7 @@ export async function sendTelegramNotification(consultation: Consultation): Prom
 export async function sendWhatsAppNotification(consultation: Consultation): Promise<boolean> {
   const token = process.env.WHATSAPP_ACCESS_TOKEN?.trim();
   const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID?.trim();
-  const notifyTo = (process.env.WHATSAPP_NOTIFY_TO || '393498124490').replace(/\D/g, '');
+  const notifyTo = (process.env.WHATSAPP_NOTIFY_TO || '').replace(/\D/g, '');
 
   if (!token || !phoneNumberId) {
     console.info(
@@ -420,16 +498,29 @@ export async function sendWhatsAppNotification(consultation: Consultation): Prom
 }
 
 export async function submitConsultation(body: any) {
+  assertProductionStorageReady();
+  assertConsultationPayload(body);
   const newConsultation = createConsultationFromBody(body);
-  const list = loadConsultations();
-  list.unshift(newConsultation);
-  saveConsultations(list);
+  const summaryText = formatConsultationMessage(newConsultation);
 
-  console.log(
-    `[MARGO Atelier Engine] New Consultation Dossier: ${newConsultation.contact.name} (${newConsultation.id})`
+  let persisted = false;
+  let saved = newConsultation;
+
+  if (isSupabaseConfigured()) {
+    saved = await dbInsertConsultation(newConsultation, summaryText);
+    persisted = true;
+  } else {
+    const list = loadLocalConsultations();
+    list.unshift(newConsultation);
+    persisted = saveLocalConsultations(list);
+    saved = newConsultation;
+  }
+
+  console.info(
+    `[MARGO Atelier Engine] New Consultation Dossier received (${saved.id}) persisted=${persisted} supabase=${isSupabaseConfigured()}`
   );
 
-  const channel = newConsultation.preferredChannel;
+  const channel = saved.preferredChannel;
   let telegramNotificationSent = false;
   let whatsappNotificationSent = false;
   let emailNotificationSent = false;
@@ -437,7 +528,7 @@ export async function submitConsultation(body: any) {
   // Deliver to the channel the client chose; always keep email as atelier backup.
   if (channel === 'whatsapp') {
     try {
-      whatsappNotificationSent = await sendWhatsAppNotification(newConsultation);
+      whatsappNotificationSent = await sendWhatsAppNotification(saved);
     } catch (waErr: any) {
       console.error('[WhatsApp] Unexpected notification error:', waErr?.message || 'Error');
       whatsappNotificationSent = false;
@@ -445,14 +536,14 @@ export async function submitConsultation(body: any) {
     // Fallback: if WhatsApp Cloud API is not wired yet, still ping Telegram so the lead is not lost.
     if (!whatsappNotificationSent) {
       try {
-        telegramNotificationSent = await sendTelegramNotification(newConsultation);
+        telegramNotificationSent = await sendTelegramNotification(saved);
       } catch (tgErr: any) {
         console.error('[Telegram] Fallback notification error:', tgErr?.message || 'Error');
       }
     }
   } else {
     try {
-      telegramNotificationSent = await sendTelegramNotification(newConsultation);
+      telegramNotificationSent = await sendTelegramNotification(saved);
     } catch (tgErr: any) {
       console.error('[Telegram] Unexpected notification error:', tgErr?.message || 'Error');
       telegramNotificationSent = false;
@@ -460,7 +551,7 @@ export async function submitConsultation(body: any) {
   }
 
   try {
-    emailNotificationSent = await sendAdminDossierEmail(newConsultation);
+    emailNotificationSent = await sendAdminDossierEmail(saved);
   } catch (mailErr: any) {
     console.error('[Email] Unexpected notification error:', mailErr?.message || 'Error');
     emailNotificationSent = false;
@@ -468,38 +559,64 @@ export async function submitConsultation(body: any) {
 
   return {
     success: true,
-    consultation: newConsultation,
+    consultation: saved,
     telegramNotificationSent,
     whatsappNotificationSent,
     emailNotificationSent,
-    persisted: !isVercel,
+    persisted,
   };
 }
 
-export function updateConsultationStatus(id: string, status: Consultation['status']) {
-  const list = loadConsultations();
+export async function updateConsultationStatus(id: string, status: Consultation['status']) {
+  assertProductionStorageReady();
+  if (!status) return null;
+
+  if (isSupabaseConfigured()) {
+    return dbUpdateConsultation(id, { status });
+  }
+
+  const list = loadLocalConsultations();
   const item = list.find((c) => c.id === id);
-  if (!item || !status) return null;
+  if (!item) return null;
   item.status = status;
-  saveConsultations(list);
+  saveLocalConsultations(list);
   return item;
 }
 
-export function archiveConsultation(id: string) {
-  const list = loadConsultations();
+export async function archiveConsultation(id: string) {
+  assertProductionStorageReady();
+  const archivedAt = new Date().toISOString();
+
+  if (isSupabaseConfigured()) {
+    return dbUpdateConsultation(id, { archived: true, archivedAt });
+  }
+
+  const list = loadLocalConsultations();
   const item = list.find((c) => c.id === id);
   if (!item) return null;
   item.archived = true;
-  item.archivedAt = new Date().toISOString();
-  saveConsultations(list);
+  item.archivedAt = archivedAt;
+  saveLocalConsultations(list);
   return item;
 }
 
-export function permanentlyDeleteConsultation(id: string): 'not_found' | 'not_archived' | 'deleted' {
-  const list = loadConsultations();
+export async function permanentlyDeleteConsultation(
+  id: string
+): Promise<'not_found' | 'not_archived' | 'deleted'> {
+  assertProductionStorageReady();
+
+  if (isSupabaseConfigured()) {
+    const existing = await dbGetConsultation(id);
+    if (!existing) return 'not_found';
+    if (!existing.archived) return 'not_archived';
+    await dbDeleteConsultation(id);
+    return 'deleted';
+  }
+
+  const list = loadLocalConsultations();
   const item = list.find((c) => c.id === id);
   if (!item) return 'not_found';
   if (!item.archived) return 'not_archived';
-  saveConsultations(list.filter((c) => c.id !== id));
+  saveLocalConsultations(list.filter((c) => c.id !== id));
   return 'deleted';
 }

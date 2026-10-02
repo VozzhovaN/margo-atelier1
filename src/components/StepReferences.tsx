@@ -79,7 +79,7 @@ export const StepReferences: React.FC<StepReferencesProps> = ({
     const filesToProcess = Array.from(files).slice(0, availableSlots);
 
     filesToProcess.forEach((file) => {
-      if (!file.type.startsWith('image/')) {
+      if (!file.type.startsWith('image/') || !['image/jpeg', 'image/png', 'image/webp', 'image/jpg'].includes(file.type)) {
         setUploadError(
           lang === 'ru'
             ? 'Пожалуйста, выберите формат изображений (JPG, PNG, WebP).'
@@ -192,7 +192,7 @@ export const StepReferences: React.FC<StepReferencesProps> = ({
           ref={fileInputRef}
           id="reference-file-input"
           type="file"
-          accept="image/*"
+          accept="image/jpeg,image/png,image/webp"
           multiple
           className="hidden"
           onChange={(e) => handleFiles(e.target.files)}
