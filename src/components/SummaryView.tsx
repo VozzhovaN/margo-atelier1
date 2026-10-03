@@ -71,12 +71,14 @@ export const SummaryView: React.FC<SummaryViewProps> = ({
   const [submittingChannel, setSubmittingChannel] = useState<'whatsapp' | 'telegram' | null>(null);
   const [dossierId, setDossierId] = useState<string>(dossier.id || 'MARGO-8492');
   const [copiedLink, setCopiedLink] = useState(false);
+  const [submitError, setSubmitError] = useState<string>('');
 
   // Submit dossier server-side — no redirect to WhatsApp / Telegram apps
   const handleSendToAtelier = async (preferredChannel: 'whatsapp' | 'telegram') => {
     if (submitting || submissionSuccess) return;
     setSubmitting(true);
     setSubmittingChannel(preferredChannel);
+    setSubmitError('');
     try {
       const res = await fetch('/api/consultations', {
         method: 'POST',
@@ -99,19 +101,34 @@ export const SummaryView: React.FC<SummaryViewProps> = ({
         }),
       });
 
-      if (res.ok) {
-        const data = await res.json();
-        if (data.consultation?.id) {
-          setDossierId(data.consultation.id);
-        }
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.consultation?.id) {
+        setDossierId(data.consultation.id);
         setSubmissionSuccess(true);
         setShowThankYou(true);
+      } else if (res.ok) {
+        setSubmitError(
+          lang === 'ru'
+            ? 'Досье сохранено, но номер не получен. Попробуйте ещё раз.'
+            : 'Dossier saved, but no reference number was returned. Please try again.'
+        );
       } else {
-        const data = await res.json().catch(() => ({}));
         console.error('Submission rejected:', res.status, data?.error || data);
+        setSubmitError(
+          typeof data?.error === 'string'
+            ? data.error
+            : lang === 'ru'
+              ? 'Не удалось отправить досье. Попробуйте ещё раз.'
+              : 'Could not send the dossier. Please try again.'
+        );
       }
     } catch (err) {
       console.error('Submission error:', err);
+      setSubmitError(
+        lang === 'ru'
+          ? 'Ошибка сети. Проверьте соединение и попробуйте снова.'
+          : 'Network error. Check your connection and try again.'
+      );
     } finally {
       setSubmitting(false);
       setSubmittingChannel(null);
@@ -381,6 +398,12 @@ export const SummaryView: React.FC<SummaryViewProps> = ({
             )}
           </button>
         </div>
+
+        {submitError && (
+          <p className="text-center text-xs text-[#A14A3A] leading-relaxed px-2" role="alert">
+            {submitError}
+          </p>
+        )}
 
         <button
           id="share-dossier-btn"
