@@ -475,21 +475,27 @@ async function sendWhatsAppNotification(
   }
 }
 
+type GlobalStore = typeof globalThis & { __margoConsultations?: any[] };
+
+function memoryStore(): any[] {
+  const g = globalThis as GlobalStore;
+  if (!g.__margoConsultations) g.__margoConsultations = [];
+  return g.__margoConsultations;
+}
+
 async function insertConsultationRest(
   consultation: ReturnType<typeof createConsultationFromBody>,
   summaryText: string
-) {
+): Promise<{ saved: any; persisted: boolean }> {
   const sb = supabaseConfig();
   if (!sb) {
-    throw Object.assign(
-      new Error(
-        'SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required in production for durable dossier storage.'
-      ),
-      { statusCode: 503 }
+    // Soft fallback: still issue a dossier number + notify Telegram when Supabase env is missing.
+    const mem = memoryStore();
+    mem.unshift(consultation);
+    console.warn(
+      '[api/consultations] Supabase not configured; dossier kept in ephemeral memory for this instance.'
     );
-  }
-  if (!process.env.ADMIN_PASSWORD?.trim()) {
-    throw Object.assign(new Error('ADMIN_PASSWORD is required in production.'), { statusCode: 503 });
+    return { saved: consultation, persisted: false };
   }
 
   const row = {
@@ -546,14 +552,14 @@ async function insertConsultationRest(
   }
 
   const savedRow = Array.isArray(payload) ? payload[0] : payload;
-  return savedRow ? rowToConsultation(savedRow) : consultation;
+  return { saved: savedRow ? rowToConsultation(savedRow) : consultation, persisted: true };
 }
 
 async function submitConsultation(body: any) {
   assertConsultationPayload(body);
   const created = createConsultationFromBody(body);
   const summaryText = formatConsultationMessage(created);
-  const saved = await insertConsultationRest(created, summaryText);
+  const { saved, persisted } = await insertConsultationRest(created, summaryText);
 
   let telegramNotificationSent = false;
   let whatsappNotificationSent = false;
@@ -573,7 +579,7 @@ async function submitConsultation(body: any) {
     telegramNotificationSent,
     whatsappNotificationSent,
     emailNotificationSent: false,
-    persisted: true,
+    persisted,
   };
 }
 
